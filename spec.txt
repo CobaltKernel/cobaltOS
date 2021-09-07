@@ -1,0 +1,16 @@
+Goals:
+  - Provide a stable platform for x86 development.
+  - Gain insight on the low level internals on several x86 system components, ie VGA, Interrupts, The CMOS & RTC.
+  - Have simple & robust drivers for various hardware, eg PCI Cards, Storage Devices.
+  - Be POSIX Compliant where necessary, ie in user facing parts of the kernel.
+
+Abstractions:
+  - The Kernel is to provide simple, abstract & extendable set of interfaces that represent
+	any hardware in a generic way. The two main ways this will be achieved are as follows:
+	  - A 'Driver' Base Trait.
+	  - A 'System' Base Trait.
+  - A 'Driver' is responsible for ONE piece of hardware, eg a VGA driver, a PIC8259 Driver, a PIT.
+  - A 'System' is responsible for Multiple drivers that fall into a single responsiblity, ie A Graphics System, Sound System,
+	Input System, Output System, Storage System.
+
+
