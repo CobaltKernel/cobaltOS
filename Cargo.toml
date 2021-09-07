@@ -13,3 +13,8 @@ panic = "abort"
 
 [dependencies]
 bootloader = "0.9.8"
+
+[features]
+vga = []
+headless = []
+

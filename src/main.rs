@@ -7,6 +7,7 @@ use core::panic::PanicInfo;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
+	systems::output::Output::write("Hello, Bastards!");
 	loop {}
 }
 
