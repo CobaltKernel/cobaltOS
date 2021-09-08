@@ -1,7 +1,9 @@
 install_prereqs:
 	cargo install bootimage
+	rustup component add rust-src
 	rustup component add llvm-tools-preview
-	apt-get install qemu-
+	apt-get install qemu-system
+
 
 clean:
 	cargo clean
