@@ -23,4 +23,4 @@ jobs:
         rustup component add rust-src
         sudo apt install qemu-system
     - name: Build
-      run: cargo build --verbose
+      run: make build
