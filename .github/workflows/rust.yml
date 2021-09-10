@@ -1,0 +1,26 @@
+name: Rust
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install
+      run: |
+        cargo install bootimage
+        rustup component add llvm-tools-preview
+        rustup component add rust-src
+        sudo apt install qemu-system
+    - name: Build
+      run: cargo build --verbose
