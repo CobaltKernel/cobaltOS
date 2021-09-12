@@ -57,7 +57,7 @@ pub fn start() {
             sys::timer::pause(0.01);
             input(&mut input_buf);
             let exit_code = run(input_buf);
-            if exit_code != 0 {
+            if exit_code != 0 && exit_code < usize::MAX {
                 println!("Program Returned With Exit Code {}", exit_code);
             };
             input_buf.clear();
@@ -81,6 +81,7 @@ pub fn run(command: &str) -> usize {
         "exit_test" => {test_exit(&parts)},
         "watch" => {watch(&parts)},
         "txt" => {cmd::text_editor::main(&parts)},
+        "dsk" => {cmd::dsk::main(&parts)},
         _ => {
             println!("Unknown Command '{}'", program_name);
             usize::MAX

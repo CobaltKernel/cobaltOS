@@ -1,7 +1,8 @@
 
 use x86_64::structures::idt::{InterruptStackFrame, InterruptDescriptorTable, PageFaultErrorCode};
 use crate::{serial, serial_print, serial_println, sys::{self, keyboard}};
-use super::{gdt, pics::*};
+use super::{gdt, *};
+use crate::interrupts::pics::*;
 
 use lazy_static::lazy_static;
 
@@ -53,15 +54,16 @@ lazy_static! {
 		idt[InterruptIndex::Timer.as_usize()].set_handler_fn(on_timer_tick); 		
         idt[InterruptIndex::Keyboard.as_usize()].set_handler_fn(on_key);
         idt[InterruptIndex::Com1.as_usize()].set_handler_fn(on_com1_ready);
+        idt[InterruptIndex::Lpt1.as_usize()].set_handler_fn(on_spurious_irq);
+        idt[InterruptIndex::PrimaryAta.as_usize()].set_handler_fn(on_ata_bus0_rdy);
+        idt[InterruptIndex::SecondaryAta.as_usize()].set_handler_fn(on_ata_bus1_rdy);
         idt
     };
 }
 
 
 pub fn init() {
-	unsafe {
-		IDT.load();
-	}
+	IDT.load();
 }
 
 extern "x86-interrupt" fn on_breakpoint(_: InterruptStackFrame) {
@@ -116,6 +118,12 @@ extern "x86-interrupt" fn on_key(_: InterruptStackFrame)
 	send_eoi(InterruptIndex::Keyboard.as_u8());
 }
 
+extern "x86-interrupt" fn on_spurious_irq(_: InterruptStackFrame) {
+    if !pics::is_spurious(InterruptIndex::Lpt1.as_u8()) {
+        send_eoi(InterruptIndex::Lpt1.as_u8());
+    }
+}
+
 
 
 extern "x86-interrupt" fn on_ata_bus0_rdy(_: InterruptStackFrame) {
@@ -127,3 +135,6 @@ extern "x86-interrupt" fn on_ata_bus1_rdy(_: InterruptStackFrame) {
 }
 
 
+extern "x86-interrupt" fn default(_: InterruptStackFrame) {
+    
+}

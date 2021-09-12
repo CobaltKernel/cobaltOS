@@ -17,6 +17,10 @@ impl BootFrameAllocator {
         self.usable_frames().count() - self.next_frame_index()
     }
 
+    pub fn total_frame_count(&self) -> usize {
+        self.total_frames().count()
+    }
+
     pub fn next_frame_index(&self) -> usize {
         self.next_frame
     }
@@ -42,6 +46,36 @@ impl BootFrameAllocator {
 
 
         frames
+    }
+
+    pub fn total_frames(&self) -> impl Iterator<Item = PhysFrame> {
+        let regions = self.memory_map.iter();
+        let valid_regions = regions;
+
+        let address_ranges =  valid_regions.map(
+            |region| region.range.start_addr()..region.range.end_addr()
+        );
+
+        let addresses = address_ranges.flat_map(
+            |range| range.step_by(PAGE_SIZE)
+        );
+
+        let frames = addresses.map(
+            |addr| PhysFrame::containing_address(PhysAddr::new(addr))
+        );
+
+
+
+        frames
+    }
+
+    pub fn get_mem_size(&self) -> u64 {
+        let regions = self.total_frames();
+        let mut sum: u64 = 0;
+        for r in regions {
+            sum += r.size() as u64
+        }
+        sum
     }
 }
 
