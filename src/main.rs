@@ -1,8 +1,11 @@
 #![no_std]
 #![no_main]
 #![feature(abi_x86_interrupt)]
+#![feature(alloc_error_handler)]
+#![feature(const_btree_new)]
 
-mod systems;
+extern crate alloc;
+
 mod serial;
 mod interrupts;
 
@@ -10,30 +13,48 @@ pub mod sys;
 
 use core::panic::PanicInfo;
 
-#[no_mangle]
-pub extern "C" fn _start() -> ! {
-	interrupts::init();	
-	serial_println!("Hello, World!");
-	x86_64::instructions::interrupts::int3();
-	serial_println!("Resuming From BP!");
-	sys::timer::init();
-	interrupts::enable();
-	
-	let mut pb = sys::ansi_widgets::ProgressBar::new(0, 10, "Test PB");
-	for i in 0..10 {
-		pb.set_value(i);
-		pb.draw();
-		sys::timer::pause(1.0);
-	}
+use alloc::boxed::Box;
+use sys::{console::Console, mem, timer};
+use x86_64::{VirtAddr, structures::paging::Page};
 
-	serial_println!("Stopping!");
+use crate::sys::{keyboard, timer::clear};
+
+use bootloader::{BootInfo, entry_point};
+
+entry_point!(kernel_main);
+
+pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
+	clear!();
+	print!("Initializing Interrupts...");
+	interrupts::init();
+	println!("[OK]");
+	print!("Initializing Timer...");
+	timer::init();
+	println!("[OK]");
+	print!("Enabling Interrupts...");
+	interrupts::enable();
+	println!("[OK]");
+	mem::init(boot_info);
+
+	print!("Press Any Key To Continue!");
+	while keyboard::last_char().is_none() {sys::timer::pause(0.01)}
+	clear!();
+
+	sys::shell::start();
+
 	sys::halt();
 }
 
 #[panic_handler]
 fn panic_handler(info: &PanicInfo) -> ! {
+	println!("PANIC: {}", info);
 	serial_println!("PANIC: {}", info);
 	loop {}
 }
 
+#[alloc_error_handler]
+fn alloc_error_handler(layout: alloc::alloc::Layout) -> ! {
+    panic!("allocation error: {:?}", layout);
+	serial_println!("allocation error: {:?}", layout);
+}
 

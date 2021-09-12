@@ -1,6 +1,6 @@
 
 use x86_64::structures::idt::{InterruptStackFrame, InterruptDescriptorTable, PageFaultErrorCode};
-use crate::{serial_println, serial_print};
+use crate::{serial, serial_print, serial_println, sys::{self, keyboard}};
 use super::{gdt, pics::*};
 
 use lazy_static::lazy_static;
@@ -9,7 +9,26 @@ use lazy_static::lazy_static;
 #[repr(u8)]
 pub enum InterruptIndex {
     Timer = PIC_1_OFFSET,
+    Keyboard,
+    Cascade,
+    Com1,
+    Com2,
+    Lpt2,
+    FloppyDisk,
+    Lpt1,
+    CmosRtc,
+    Free1,
+    Free2,
+    Free3,
+    Ps2Mouse,
+    Fpu,
+    PrimaryAta,
+    SecondaryAta,
+
+    SystemCalls = 80
 }
+
+
 
 impl InterruptIndex {
     fn as_u8(self) -> u8 {
@@ -32,7 +51,8 @@ lazy_static! {
 		idt.page_fault.set_handler_fn(on_page_fault);
 
 		idt[InterruptIndex::Timer.as_usize()].set_handler_fn(on_timer_tick); 		
-
+        idt[InterruptIndex::Keyboard.as_usize()].set_handler_fn(on_key);
+        idt[InterruptIndex::Com1.as_usize()].set_handler_fn(on_com1_ready);
         idt
     };
 }
@@ -65,3 +85,45 @@ extern "x86-interrupt" fn on_timer_tick(
     crate::sys::timer::increment();
 	send_eoi(InterruptIndex::Timer.as_u8());
 }
+
+extern "x86-interrupt" fn on_com1_ready(_: InterruptStackFrame) {
+    serial_print!("Serial Line: {}", serial::read());
+    send_eoi(InterruptIndex::Com1.as_u8());
+}
+
+extern "x86-interrupt" fn on_key(_: InterruptStackFrame)
+{
+    use pc_keyboard::{layouts, DecodedKey, HandleControl, Keyboard, ScancodeSet1};
+    use spin::Mutex;
+    use x86_64::instructions::port::Port;
+
+    lazy_static! {
+        static ref KEYBOARD: Mutex<Keyboard<layouts::Us104Key, ScancodeSet1>> =
+            Mutex::new(Keyboard::new(layouts::Us104Key, ScancodeSet1,
+                HandleControl::Ignore)
+            );
+    }
+
+    let mut keyboard = KEYBOARD.lock();
+    let mut port = Port::new(0x60);
+
+    let scancode: u8 = unsafe { port.read() };
+    if let Ok(Some(key_event)) = keyboard.add_byte(scancode) {
+        if let Some(key) = keyboard.process_keyevent(key_event) {
+            keyboard::set_keycode(key);
+        }
+    }
+	send_eoi(InterruptIndex::Keyboard.as_u8());
+}
+
+
+
+extern "x86-interrupt" fn on_ata_bus0_rdy(_: InterruptStackFrame) {
+	send_eoi(14);
+}
+
+extern "x86-interrupt" fn on_ata_bus1_rdy(_: InterruptStackFrame) {
+    send_eoi(15);
+}
+
+

@@ -13,6 +13,14 @@ pub fn clear() {
 	*TIMER.lock() = 0;
 }
 
+pub fn uptime_millis() -> u128 {
+	*TIMER.lock()
+}
+
+pub fn uptime_seconds() -> f64 {
+	uptime_millis() as f64 / TICKS_PER_SECOND
+}
+
 pub fn init() {
 	set_freq(TICKS_PER_SECOND);
 }
@@ -22,6 +30,13 @@ pub fn pause(seconds: f64) {
 	for _ in 0..=ticks {
 		hlt();
 	}
+}
+
+pub fn bench_fn(func: fn()) -> u128 {
+	let start = uptime_millis();
+	func();
+	let end = uptime_millis();
+	return end - start
 }
 
 

@@ -6,24 +6,21 @@ pub const SCREEN_WIDTH: usize = 80;
 #[cfg(not(feature = "80_cols"))]
 pub const SCREEN_WIDTH: usize = 40;
 
-
-pub const PROGRESS_BAR_LEN: usize = 20; 
-
-pub const fn screen_width() -> usize {
+pub fn screen_width() -> usize {
 	return SCREEN_WIDTH;
 }
 
 pub struct ProgressBar<'a> {
 	name: &'a str,
 	value: usize,
-	max: usize,
+	scale: f64,
 }
 
 impl<'a> ProgressBar<'a> {
 	pub fn new(value: usize, max: usize, name: &'a str) -> ProgressBar {
 		ProgressBar {
 			value,
-			max,
+			scale: (screen_width() as f64 / max as f64),
 			name,
 		}
 	}
@@ -34,18 +31,17 @@ impl<'a> ProgressBar<'a> {
 
 	pub fn draw(&self) {
 		serial_print!("{} - [", self.name);
-		let percentage: f64 = (self.value as f64 / self.max as f64);
-		let blocks: usize = (percentage * PROGRESS_BAR_LEN as f64) as usize;
 
-		for _ in 0..blocks {
-			serial_print!("#");
+		let fill: f64 = (self.value as f64) / (screen_width() as f64);
+
+		for _ in 0..(((fill) * self.scale as f64) as usize) {
+			serial_print!("");
 		}
 
-		for _ in blocks..PROGRESS_BAR_LEN {
+		for _ in (((fill) * self.scale as f64) as usize)..screen_width() {
 			serial_print!(" ");
 		}
-
-		serial_print!("] - {:03.2}%    \r", percentage * 100.0);
 		
+		serial_print!("]\r");
 	}
 }

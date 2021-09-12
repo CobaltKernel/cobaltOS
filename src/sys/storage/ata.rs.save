@@ -1,0 +1,14 @@
+use crate::sys::*;
+
+pub const IO_BASE_0: u16 = 0x1f0;
+
+
+pub struct DataRegister;
+
+impl DataRegister {
+	pub fn read(base: u16, buffer: &mut [u8]) {
+		for i in 0..256 {
+			let data = inportb(base)
+		}
+	}
+}
