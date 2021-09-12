@@ -20,6 +20,7 @@ pic8259 = "0.10.1"
 pc-keyboard = "0.5.1"
 volatile = "0.2.0"
 linked_list_allocator = "0.9.0"
+bit_field = "0.10.0"
 
 [dependencies.lazy_static]
 version = "1.0"
@@ -30,5 +31,5 @@ vga = []
 headless = []
 
 [package.metadata.bootimage]
-run-args = ["-device", "isa-debug-exit,iobase=0xf4,iosize=0x04", "-m", "128M", "-serial", "stdio"]
+run-args = ["-device", "isa-debug-exit,iobase=0xf4,iosize=0x04", "-m", "8M", "-serial", "stdio", "-hdb", "test.img"]
 test-args = ["-device", "isa-debug-exit,iobase=0xf4,iosize=0x04"]

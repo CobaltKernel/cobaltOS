@@ -3,13 +3,16 @@
 use x86_64::{VirtAddr, structures::paging::{FrameAllocator, Mapper, Page, PageTableFlags, Size4KiB, mapper::MapToError, page}};
 use crate::sys::mem;
 
+
 use super::{HEAP_SIZE, HEAP_START};
 pub fn init(mapper: &mut impl Mapper<Size4KiB>,
-    frame_allocator: &mut impl FrameAllocator<Size4KiB>,
+    frame_allocator: &mut mem::frame_alloc::BootFrameAllocator,
 ) -> Result<(), MapToError<Size4KiB>> {
+    let size = (frame_allocator.get_mem_size() as f64 / 10.0) as u64;
     let page_range = {
+        
         let heap_start = VirtAddr::new(HEAP_START as u64);
-        let heap_end = heap_start + HEAP_SIZE - 1u64;
+        let heap_end = heap_start + size - 1u64;
         let heap_start_page = Page::containing_address(heap_start);
         let heap_end_page = Page::containing_address(heap_end);
         Page::range_inclusive(heap_start_page, heap_end_page)
@@ -25,7 +28,7 @@ pub fn init(mapper: &mut impl Mapper<Size4KiB>,
             .ok_or(MapToError::FrameAllocationFailed)?;
         let flags = PageTableFlags::PRESENT | PageTableFlags::WRITABLE;
 
-        crate::print!("Initializing Heap ({} MB) - {:02.3}%...                      \r", mem::size() / mem::MB, (index as f64 / page_count as f64) * 100.0);
+        crate::print!("Initializing Heap ({} MB) - {:02.3}%...                      \r", size as usize / mem::MB, (index as f64 / page_count as f64) * 100.0);
 
 
         index += 1;
@@ -35,6 +38,6 @@ pub fn init(mapper: &mut impl Mapper<Size4KiB>,
         };
 
     }
-    crate::println!("Initializing Heap ({} MB) - {:02.3}% - [OK]                   \r", mem::size() / mem::MB, (index as f64 / page_count as f64) * 100.0);
+    crate::println!("Initializing Heap ({} MB) - {:02.3}% - [OK]                   \r", size / mem::MB as u64, (index as f64 / page_count as f64) * 100.0);
     Ok(())
 }

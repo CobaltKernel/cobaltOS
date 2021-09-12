@@ -17,7 +17,7 @@ use alloc::boxed::Box;
 use sys::{console::Console, mem, timer};
 use x86_64::{VirtAddr, structures::paging::Page};
 
-use crate::sys::{keyboard, timer::clear};
+use crate::sys::{ata, keyboard, timer::clear};
 
 use bootloader::{BootInfo, entry_point};
 
@@ -34,7 +34,10 @@ pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
 	print!("Enabling Interrupts...");
 	interrupts::enable();
 	println!("[OK]");
+
 	mem::init(boot_info);
+
+	ata::init();
 
 	print!("Press Any Key To Continue!");
 	while keyboard::last_char().is_none() {sys::timer::pause(0.01)}

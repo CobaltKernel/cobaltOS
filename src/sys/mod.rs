@@ -7,6 +7,7 @@ pub mod vga;
 pub mod console;
 pub mod mem;
 pub mod shell;
+pub mod ata;
 
 use x86_64::instructions::port::*;
 
