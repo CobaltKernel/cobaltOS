@@ -30,7 +30,12 @@ pub fn main(args: &Vec<&str>) -> usize {
         for (index, line) in text_buffer.lines().enumerate() {
             clear_line!(1 + index);
             print_at!(0, 1 + index, line);
+<<<<<<< HEAD
             clear_line!(1 + index + 1);
+=======
+            clear_line!(2 + index);
+            clear_line!(3 + index);
+>>>>>>> 2d36125 (Removed test.img)
         }
         run!("pause 0.01");
     }

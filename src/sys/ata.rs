@@ -312,3 +312,6 @@ pub fn write(bus: u8, drive: u8, block: u32, buf: &[u8]) {
         buses[bus as usize].write(drive, block, buf);
     });
 }
+
+
+

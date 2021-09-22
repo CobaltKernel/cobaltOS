@@ -1,3 +1,5 @@
+use crate::println;
+
 use pic8259::ChainedPics;
 use spin;
 use lazy_static::lazy_static;
@@ -20,6 +22,8 @@ pub fn send_eoi(index: u8) {
 }
 
 pub fn is_spurious(irq: u8) -> bool {
+	let irq = irq - 32;
+	//println!("Checking Interrupt #{}", irq);
 	return (get_isr() & (1 as u16) << irq) == 0;
 }
 
@@ -34,11 +38,11 @@ pub fn get_isr() -> u16 {
 		master_cmd.write(0x0B);
 		slave_cmd.write(0x0B);
 
-		high = (slave_dat.read() as u16) << 8;
-		low = (master_dat.read() as u16) << 0;
+		high = ((slave_dat.read() as u16) & 0xFF) << 8;
+		low = master_dat.read() as u16;
 	}
 
-	return high | low;
+	return (high & 0xFF00) | (low & 0x00FF);
 
 
 

@@ -3,12 +3,18 @@
 use x86_64::{VirtAddr, structures::paging::{FrameAllocator, Mapper, Page, PageTableFlags, Size4KiB, mapper::MapToError, page}};
 use crate::sys::mem;
 
+use lazy_static::lazy_static;
+use spin::Mutex;
 
-use super::{HEAP_SIZE, HEAP_START};
+
+
+use super::{HEAP_SIZE, HEAP_START, paging};
 pub fn init(mapper: &mut impl Mapper<Size4KiB>,
     frame_allocator: &mut mem::frame_alloc::BootFrameAllocator,
 ) -> Result<(), MapToError<Size4KiB>> {
-    let size = (frame_allocator.get_mem_size() as f64 / 10.0) as u64;
+
+
+    let size = HEAP_SIZE as u64;
     let page_range = {
         
         let heap_start = VirtAddr::new(HEAP_START as u64);

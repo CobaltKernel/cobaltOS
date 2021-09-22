@@ -8,8 +8,22 @@ pub mod console;
 pub mod mem;
 pub mod shell;
 pub mod ata;
+<<<<<<< HEAD
+=======
+pub mod acpi;
+pub mod pci;
+pub mod pci_details;
+pub mod net;
+>>>>>>> 2d36125 (Removed test.img)
 
 use x86_64::instructions::port::*;
+
+use crate::serial_println;
+
+pub fn shutdown() -> ! {
+    serial_println!("[SYS]: Shutting System Down!");
+    acpi::shutdown();
+}
 
 pub fn halt() -> ! {
 	loop { timer::pause(0.1); }
