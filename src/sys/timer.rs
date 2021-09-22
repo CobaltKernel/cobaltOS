@@ -1,5 +1,7 @@
 use spin::Mutex;
-use x86_64::instructions::hlt;
+use x86_64::instructions::{hlt, interrupts::{self, disable, enable, enable_and_hlt}};
+use crate::interrupts::{};
+
 use super::pit::set_freq;
 static TIMER: Mutex<u128> = Mutex::new(0);
 pub const TICKS_PER_SECOND: f64 = 1000.6789606035205f64;
@@ -28,7 +30,12 @@ pub fn init() {
 pub fn pause(seconds: f64) {
 	let ticks: usize = (seconds * TICKS_PER_SECOND) as usize;
 	for _ in 0..=ticks {
-		hlt();
+		if !interrupts::are_enabled() { // Interrupts Are Disabled
+			enable_and_hlt();
+			disable();
+		} else {
+			hlt();
+		}
 	}
 }
 

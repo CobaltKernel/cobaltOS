@@ -1,6 +1,10 @@
 
 use x86_64::structures::idt::{InterruptStackFrame, InterruptDescriptorTable, PageFaultErrorCode};
+<<<<<<< HEAD
 use crate::{serial, serial_print, serial_println, sys::{self, keyboard}};
+=======
+use crate::{inb, serial, serial_print, serial_println, sys::{self, keyboard}};
+>>>>>>> 2d36125 (Removed test.img)
 use super::{gdt, *};
 use crate::interrupts::pics::*;
 
@@ -107,9 +111,9 @@ extern "x86-interrupt" fn on_key(_: InterruptStackFrame)
     }
 
     let mut keyboard = KEYBOARD.lock();
-    let mut port = Port::new(0x60);
+    //let mut port = Port::new(0x60);
 
-    let scancode: u8 = unsafe { port.read() };
+    let scancode: u8 = unsafe { inb!(0x60) };
     if let Ok(Some(key_event)) = keyboard.add_byte(scancode) {
         if let Some(key) = keyboard.process_keyevent(key_event) {
             keyboard::set_keycode(key);

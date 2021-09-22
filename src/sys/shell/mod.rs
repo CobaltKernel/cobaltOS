@@ -82,6 +82,8 @@ pub fn run(command: &str) -> usize {
         "watch" => {watch(&parts)},
         "txt" => {cmd::text_editor::main(&parts)},
         "dsk" => {cmd::dsk::main(&parts)},
+        "install" => {cmd::install::main(&parts)},
+        "fs" => {cmd::fs::main(&parts)},
         _ => {
             println!("Unknown Command '{}'", program_name);
             usize::MAX
@@ -119,7 +121,8 @@ fn shutdown(_args: &Vec<&str>) -> usize {
     if input_buffer.starts_with("y") {
         println!("Shutting Down in 5 Seconds!");
         run("pause 5");
-        sys::qemu_exit();
+        sys::shutdown();
+
     } else {
         println!("Shutdown Stopped!");
         1
@@ -167,6 +170,9 @@ fn help(_: &Vec<&str>) -> usize {
     run!("Echo 2. pause <seconds> - Halt Execution for <seconds>.");
     run!("Echo 3. uptime - prints the system uptime in seconds");
     run!("Echo 4. shutdown - shuts the system down, only works on Qemu, requires input.");
+    run!("Echo 5. dsk - Various Disk Utilities");
+    run!("Echo 6. echo - Echos back the arguments to the screen");
+    run!("Echo 7. install - Copies The contents of Drive 0:0 To Drive 0:1, doesn't ask for authentication.");
     return 0;
 }
 
