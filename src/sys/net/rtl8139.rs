@@ -3,10 +3,10 @@ use core::convert::TryInto;
 use alloc::{collections::BTreeMap, vec::Vec};
 use array_macro::array;
 
-use smoltcp::{iface::{EthernetInterfaceBuilder, NeighborCache, Routes}, phy::{self, Device, DeviceCapabilities}, wire::{EthernetAddress, IpCidr, Ipv4Address}};
+use smoltcp::{iface::{EthernetInterfaceBuilder, NeighborCache, Routes}, phy::{self, Device, DeviceCapabilities}, storage::PacketMetadata, wire::{DhcpPacket, EthernetAddress, Icmpv4Packet, IpCidr, Ipv4Address, Ipv4Packet}};
 use x86_64::instructions::port::Port;
 
-use crate::{debug, log, sys::{self, mem::allocator::PhysBuf}};
+use crate::{breakpoint, debug, log, sys::{self, mem::allocator::PhysBuf, net::dhcp}};
 
 
 //const CRS: u32 = 1 << 31; // Carrier Sense Lost
@@ -22,7 +22,7 @@ const OWN: u32 = 1 << 13; // DMA operation completed
 // 01 = 16K + 16 bytes
 // 10 = 32K + 16 bytes
 // 11 = 64K + 16 bytes
-const RX_BUFFER_IDX: usize = 0;
+const RX_BUFFER_IDX: usize = 0b00;
 
 const MTU: usize = 1500;
 
@@ -216,13 +216,20 @@ impl<'a> Device<'a> for RTL8139 {
         let cbr = unsafe { self.ports.cbr.read() };
 
         debug!("CAPR: {}", capr);
+        debug!("CBR: {}", cbr);
+
+        breakpoint!();
 
         let offset = ((capr as usize) + RX_BUFFER_PAD) % (1 << 16);
         let header = u16::from_le_bytes(self.rx_buffer[(offset + 0)..(offset + 2)].try_into().unwrap());
         debug!("RECV: Header: 0x{:04x}.", header);
+        debug!("Offset: {}", offset);
+
+        debug!("Buffer[offset+0..offset + 16]: {:?}", &self.rx_buffer[(offset + 0)..(offset + 16)]);
 
         if header & ROK != ROK {
             debug!("Header Type Is Not ROK, Aborting!");
+            breakpoint!();
             unsafe { self.ports.capr.write(cbr); }
             return None;
         };
@@ -275,6 +282,10 @@ impl phy::TxToken for TxToken {
         where F: FnOnce(&mut [u8]) -> smoltcp::Result<R> {
             let tx_id = self.device.tx_id;
             let mut buf = &mut self.device.tx_buffers[tx_id][0..len];
+
+            debug!("Transmitting {} Bytes...", buf.len());
+            let mut packet= Ipv4Packet::new_unchecked(&buf);
+            debug!("Packet Protocol: {:?}", packet.protocol());
     
             // 1. Copy the packet to a physically contiguous buffer in memory.
             let res = f(&mut buf);
@@ -283,6 +294,8 @@ impl phy::TxToken for TxToken {
             // NOTE: This has was done during init
     
             if res.is_ok() {
+                debug!("Transmitting Packet...");
+                breakpoint!();
                 let mut cmd_port = self.device.ports.tx_cmds[tx_id].clone();
                 unsafe {
                     // 3. Fill in Transmit Status: the size of this packet, the
@@ -300,6 +313,8 @@ impl phy::TxToken for TxToken {
                     // 5. When the whole packet is moved to line, the TOK bit is
                     // set to 1.
                     while cmd_port.read() & TOK != TOK {}
+
+
                 }
             }
             res
@@ -309,6 +324,7 @@ impl phy::TxToken for TxToken {
 impl phy::RxToken for RxToken {
     fn consume<R, F>(mut self, timestamp: smoltcp::time::Instant, f: F) -> smoltcp::Result<R>
         where F: FnOnce(&mut [u8]) -> smoltcp::Result<R> {
+            debug!("[{ }] Revcuieb", timestamp);
             f(&mut self.buffer)
     }
 }
@@ -340,7 +356,7 @@ pub fn init() {
                 finalize();
 
 
-            log!("Found {} IPs [{:?}]", iface.ip_addrs().len(), iface.ip_addrs());
+            //log!("Found {} IPs [{:?}]", iface.ip_addrs().len(), iface.ip_addrs());
 
             *sys::net::IFACE.lock() = Some(iface);
         }

@@ -7,7 +7,7 @@ use smoltcp::dhcp::Dhcpv4Client;
 use smoltcp::socket::{RawPacketMetadata, RawSocketBuffer, SocketSet};
 use smoltcp::time::{Instant};
 use smoltcp::wire::{IpCidr, Ipv4Address, Ipv4Cidr};
-use crate::println;
+use crate::{breakpoint, debug, println, warn};
 use crate::sys::clock::realtime;
 use crate::sys::timer::pause;
 
@@ -40,17 +40,24 @@ pub fn init() {
             let timestamp = Instant::from_secs((realtime()) as i64);
 
             match iface.poll(&mut sockets, timestamp) {
-                Err(smoltcp::Error::Unrecognized) => {}
+                Err(smoltcp::Error::Unrecognized) => {
+                    warn!("Unrecognised Error!");
+                }
                 Err(e) => {
                     println!("Network Error: {}", e);
                 }
-                Ok(_) => {}
+                Ok(state) => {
+                    warn!("OK: {}", state);
+                }
             }
 
+            breakpoint!();
             let res = dhcp.poll(&mut iface, &mut sockets, timestamp).unwrap_or_else(|e| {
                 println!("DHCP Error: {:?}", e);
                 None
             });
+            debug!("Response: {:?}", res);
+            breakpoint!();
 
             if let Some(config) = res {
                 println!("DHCP Offer received");

@@ -48,6 +48,8 @@ pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
 	net::init();
 	ata::init();
 
+	breakpoint!();
+
 	print!("Press Any Key To Continue!");
 	while keyboard::last_char().is_none() {sys::timer::pause(0.01)}
 	clear!();

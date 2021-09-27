@@ -39,3 +39,12 @@ pub fn _indw(port: u16) -> u32 {
     let mut port = Port::new(port);
     unsafe { port.read() }
 }
+
+#[macro_export]
+macro_rules! breakpoint {
+    () => {
+        $crate::println!("Breakpoint @ {}", file!());
+        x86_64::instructions::interrupts::int3();
+        
+    };
+}

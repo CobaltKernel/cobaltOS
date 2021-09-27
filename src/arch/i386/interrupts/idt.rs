@@ -1,7 +1,7 @@
 
 use spin::Mutex;
 use x86_64::{instructions::{interrupts, port::Port}, structures::idt::{InterruptStackFrame, InterruptDescriptorTable, PageFaultErrorCode}};
-use crate::{inb, serial, serial_print, serial_println, sys::{keyboard}};
+use crate::{inb, println, serial, serial_print, serial_println, sys::{self, keyboard}};
 use super::{gdt, pics::{PIC_1_OFFSET, send_eoi}};
 use super::pics;
 
@@ -92,7 +92,8 @@ pub fn init() {
 }
 
 extern "x86-interrupt" fn on_breakpoint(_: InterruptStackFrame) {
-	serial_println!("Breakpoint Hit!");
+	println!("Breakpoint Hit!");
+    while crate::sys::keyboard::consume_char().is_none() {sys::timer::pause(0.01)}
 } 
 
 extern "x86-interrupt" fn on_double_fault(
