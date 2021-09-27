@@ -1,15 +1,12 @@
-use alloc::{collections::BTreeMap, string::String, vec::Vec};
+use alloc::{string::String, vec::Vec};
 use alloc::format;
-use pc_keyboard::KeyCode;
-use crate::{clear, print, println, sys::{self, mem, shell}};
+use crate::{clear, print, println, sys::{self, mem}};
 use lazy_static::lazy_static;
-use spin::Mutex;
 use crate::run;
 
 mod cmd;
 
 use super::keyboard;
-use super::mem::heap;
 
 pub type ShellProgram = fn(&Vec<&str>) -> usize;
 
@@ -84,6 +81,8 @@ pub fn run(command: &str) -> usize {
         "dsk" => {cmd::dsk::main(&parts)},
         "install" => {cmd::install::main(&parts)},
         "fs" => {cmd::fs::main(&parts)},
+        "pci" => {cmd::pci::main(&parts)},
+        "net" => {cmd::net::main(&parts)},
         _ => {
             println!("Unknown Command '{}'", program_name);
             usize::MAX

@@ -1,6 +1,6 @@
 use spin::Mutex;
-use x86_64::instructions::{hlt, interrupts::{self, disable, enable, enable_and_hlt}};
-use crate::interrupts::{};
+use x86_64::instructions::{hlt, interrupts::{self, disable, enable_and_hlt, without_interrupts}};
+use crate::log;
 
 use super::pit::set_freq;
 static TIMER: Mutex<u128> = Mutex::new(0);
@@ -12,11 +12,18 @@ pub fn increment() {
 
 // TODO(Capt. Autism): Wrap contents into a without_interrupts closure to make interrupt-safe.
 pub fn clear() {
-	*TIMER.lock() = 0;
+	without_interrupts(|| {
+		log!("Reset Timer");
+		*TIMER.lock() = 0;
+	});
 }
 
 pub fn uptime_millis() -> u128 {
-	*TIMER.lock()
+	let mut value = 0;
+	without_interrupts(|| {
+		value = *TIMER.lock();
+	});
+	return value;
 }
 
 pub fn uptime_seconds() -> f64 {
@@ -24,6 +31,7 @@ pub fn uptime_seconds() -> f64 {
 }
 
 pub fn init() {
+	log!("Initializing Timer");
 	set_freq(TICKS_PER_SECOND);
 }
 

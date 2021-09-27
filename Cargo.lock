@@ -8,7 +8,7 @@ version = "4.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ee817a324f75ec8fa4db9b79ca77dcde7114718d37d3dc7c94f6361c30f7d9ae"
 dependencies = [
- "bit_field 0.10.1",
+ "bit_field",
  "log",
  "rsdp",
 ]
@@ -19,7 +19,7 @@ version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e6d6b9450ae5a8297444719e0030db6b098cab28ced173eef115e339555cfdc6"
 dependencies = [
- "bit_field 0.10.1",
+ "bit_field",
  "bitvec",
  "byteorder",
  "log",
@@ -27,10 +27,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "bit_field"
-version = "0.9.0"
+name = "array-macro"
+version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed8765909f9009617974ab6b7d332625b320b33c326b1e9321382ef1999b5d56"
+checksum = "4a08c8f180019011a1d94e5eebcbfaa548736815f636fadc10955f1b622b4c71"
 
 [[package]]
 name = "bit_field"
@@ -69,6 +69,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "14c189c53d098945499cdfa7ecc63567cf3886b3332b312a5b4585d8d3a6a610"
 
 [[package]]
+name = "bytes"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c4872d67bab6358e59559027aa3b9157c53d9358c51423c17554809a8858e0f8"
+
+[[package]]
 name = "cfg-if"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -86,8 +92,10 @@ version = "0.1.0"
 dependencies = [
  "acpi",
  "aml",
- "bit_field 0.10.1",
+ "array-macro",
+ "bit_field",
  "bootloader",
+ "bytes",
  "lazy_static",
  "linked_list_allocator",
  "pc-keyboard",
@@ -242,11 +250,11 @@ dependencies = [
 
 [[package]]
 name = "x86_64"
-version = "0.14.4"
+version = "0.14.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d95947de37ad0d2d9a4a4dd22e0d042e034e5cbd7ab53edbca0d8035e0a6a64d"
+checksum = "bbc6ed1ed2cd4536b083c34041aff7b84448ee25ac4aa5e9d54802ce226f9815"
 dependencies = [
- "bit_field 0.9.0",
+ "bit_field",
  "bitflags",
  "volatile 0.4.4",
 ]

@@ -4,7 +4,7 @@ use lazy_static::lazy_static;
 use spin::Mutex;
 use alloc::vec::Vec;
 
-use crate::{println, sys::pci_details};
+use crate::println;
 
 const PCI_CONFIG_BASE: u32 = 0x8000_0000;
 const PCI_ADDR_PORT: u16 = 0xCF8;
@@ -127,6 +127,16 @@ fn add_device(bus: u8, device: u8, function: u8) {
     let config = DeviceConfig::new(bus, device, function);
     PCI_DEVICES.lock().push(config);
     println!("PCI {:04}:{:02}:{:02} [{:04X}:{:04X}]...", bus, device, function, config.vendor_id, config.device_id);
+}
+
+pub fn find_device(vendor: u16, device_id: u16) -> Option<DeviceConfig> {
+    let devices = &*PCI_DEVICES.lock();
+    for device in devices {
+        if device.device_id == device_id && device.vendor_id == vendor {
+            return Some(*device)
+        };
+    }
+    return None;
 }
 
 struct ConfigRegister {

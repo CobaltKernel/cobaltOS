@@ -1,14 +1,13 @@
 
 
-use x86_64::{VirtAddr, structures::paging::{FrameAllocator, Mapper, Page, PageTableFlags, Size4KiB, mapper::MapToError, page}};
+use x86_64::{VirtAddr, structures::paging::{FrameAllocator, Mapper, Page, PageTableFlags, Size4KiB, mapper::MapToError}};
 use crate::sys::mem;
 
-use lazy_static::lazy_static;
-use spin::Mutex;
 
 
+use super::{HEAP_SIZE, HEAP_START};
 
-use super::{HEAP_SIZE, HEAP_START, paging};
+
 pub fn init(mapper: &mut impl Mapper<Size4KiB>,
     frame_allocator: &mut mem::frame_alloc::BootFrameAllocator,
 ) -> Result<(), MapToError<Size4KiB>> {

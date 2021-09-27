@@ -1,6 +1,22 @@
+use core::convert::TryInto;
+
+use alloc::{collections::BTreeMap, vec::Vec};
+use array_macro::array;
+
+use smoltcp::{iface::{EthernetInterfaceBuilder, NeighborCache, Routes}, phy::{self, Device, DeviceCapabilities}, wire::{EthernetAddress, IpCidr, Ipv4Address}};
 use x86_64::instructions::port::Port;
 
-use crate::sys::mem::allocator::PhysBuf;
+use crate::{debug, log, sys::{self, mem::allocator::PhysBuf}};
+
+
+//const CRS: u32 = 1 << 31; // Carrier Sense Lost
+//const TAB: u32 = 1 << 30; // Transmit Abort
+//const OWC: u32 = 1 << 29; // Out of Window Collision
+//const CDH: u32 = 1 << 28; // CD Heart Beat
+const TOK: u32 = 1 << 15; // Transmit OK
+//const TUN: u32 = 1 << 14; // Transmit FIFO Underrun
+const OWN: u32 = 1 << 13; // DMA operation completed
+
 
 // 00 = 8K + 16 bytes
 // 01 = 16K + 16 bytes
@@ -128,4 +144,216 @@ pub struct RTL8139 {
     rx_offset: usize,
     tx_buffers: [PhysBuf; TX_BUFFERS_COUNT],
     tx_id: usize,
+
+    eth_addr: Option<EthernetAddress>,
+}
+
+impl RTL8139 {
+    pub fn new(io_base: u16) -> Self {
+        Self {
+            ports: Ports::new(io_base),
+            rx_buffer: PhysBuf::new(MTU + RX_BUFFER_LEN),
+            tx_buffers: array![PhysBuf::new(TX_BUFFER_LEN); TX_BUFFERS_COUNT],
+            rx_offset: 0,
+            tx_id: TX_BUFFERS_COUNT - 1,
+            eth_addr: None,
+        }
+    }
+
+    pub unsafe fn init(&mut self) {
+            // Power On The Card
+            self.ports.config1.write(0);
+
+            // Software Reset
+            self.ports.cmd.write(CR_RST);
+            while self.ports.cmd.read() & CR_RST != 0 {}
+
+            // Enable Receive & Transmit
+            self.ports.cmd.write(CR_RE | CR_TE);
+
+            // Get the Ethernet Address From the MAC Address
+            self.eth_addr = Some(EthernetAddress::from_bytes(&self.ports.mac()));
+
+            // Set The Receiving Buffer's Address
+            let rx_addr = self.rx_buffer.addr();
+            self.ports.rx_addr.write(rx_addr as u32);
+
+            // Set the Transmitting Buffer's Addresses
+            for i in 0..4 {
+                let addr = self.tx_buffers[i].addr();
+
+                self.ports.tx_addrs[i].write(addr as u32);
+            }
+
+            self.ports.imr.write(IMR_ROK | IMR_TOK);
+
+            self.ports.rx_config.write(RCR_RBLEN | RCR_WRAP | RCR_AB | RCR_AM | RCR_APM | RCR_AAP);
+
+            self.ports.tx_config.write(TCR_IFG | TCR_MXDMA0 | TCR_MXDMA1 | TCR_MXDMA2);
+    }
+}
+
+
+#[doc(hidden)]
+pub struct RxToken {
+    buffer: Vec<u8>,
+}
+
+#[doc(hidden)]
+pub struct TxToken {
+    device: RTL8139
+}
+
+
+impl<'a> Device<'a> for RTL8139 {
+    type RxToken = RxToken;
+    type TxToken = TxToken;
+
+    fn receive(&'a mut self) -> Option<(Self::RxToken, Self::TxToken)> {
+        let cmd = unsafe {self.ports.cmd.read()};
+        if cmd == CR_BUFE {return None};
+        let capr = unsafe { self.ports.capr.read() };
+        let cbr = unsafe { self.ports.cbr.read() };
+
+        debug!("CAPR: {}", capr);
+
+        let offset = ((capr as usize) + RX_BUFFER_PAD) % (1 << 16);
+        let header = u16::from_le_bytes(self.rx_buffer[(offset + 0)..(offset + 2)].try_into().unwrap());
+        debug!("RECV: Header: 0x{:04x}.", header);
+
+        if header & ROK != ROK {
+            debug!("Header Type Is Not ROK, Aborting!");
+            unsafe { self.ports.capr.write(cbr); }
+            return None;
+        };
+
+        let n = u16::from_le_bytes(self.rx_buffer[(offset + 2)..(offset + 4)].try_into().unwrap()) as usize;
+        let len = n - 4;
+        debug!("Packet Size: {} Bytes.", len);
+
+        self.rx_offset = (offset + n + 4 + 3) & !3;
+        unsafe {
+            self.ports.capr.write((self.rx_offset - RX_BUFFER_PAD) as u16);
+        }
+
+        let rx = RxToken {
+            buffer: self.rx_buffer[(offset + 4)..(offset + n)].to_vec()
+        };
+        let tx = TxToken {
+            device: self.clone()
+        };
+
+        Some((rx, tx))
+    }
+
+    fn transmit(&'a mut self) -> Option<Self::TxToken> {
+        //let isr = unsafe { self.ports.isr.read() };
+        self.tx_id = (self.tx_id + 1) % TX_BUFFERS_COUNT;
+
+            debug!("{}", "-".repeat(66));
+            debug!("NET RTL8139 Transmitting:");
+            debug!("TX Buffer:{}", self.tx_id);
+            //printk!("Interrupt Status Register: {:#02X}\n", isr);
+
+        let tx = TxToken {
+            device: self.clone()
+        };
+
+        Some(tx)
+    }
+
+    fn capabilities(&self) -> smoltcp::phy::DeviceCapabilities {
+        let mut caps = DeviceCapabilities::default();
+        caps.max_transmission_unit = MTU;
+        caps.max_burst_size = Some(1);
+        caps
+    }
+}
+
+impl phy::TxToken for TxToken {
+    fn consume<R, F>(mut self, timestamp: smoltcp::time::Instant, len: usize, f: F) -> smoltcp::Result<R>
+        where F: FnOnce(&mut [u8]) -> smoltcp::Result<R> {
+            let tx_id = self.device.tx_id;
+            let mut buf = &mut self.device.tx_buffers[tx_id][0..len];
+    
+            // 1. Copy the packet to a physically contiguous buffer in memory.
+            let res = f(&mut buf);
+    
+            // 2. Fill in Start Address(physical address) of this buffer.
+            // NOTE: This has was done during init
+    
+            if res.is_ok() {
+                let mut cmd_port = self.device.ports.tx_cmds[tx_id].clone();
+                unsafe {
+                    // 3. Fill in Transmit Status: the size of this packet, the
+                    // early transmit threshold, and clear OWN bit in TSD (this
+                    // starts the PCI operation).
+                    // NOTE: The length of the packet use the first 13 bits (but
+                    // should not exceed 1792 bytes), and a value of 0x000000
+                    // for the early transmit threshold means 8 bytes. So we
+                    // just write the size of the packet.
+                    cmd_port.write(0x1FFF & len as u32);
+    
+                    // 4. When the whole packet is moved to FIFO, the OWN bit is
+                    // set to 1.
+                    while cmd_port.read() & OWN != OWN {}
+                    // 5. When the whole packet is moved to line, the TOK bit is
+                    // set to 1.
+                    while cmd_port.read() & TOK != TOK {}
+                }
+            }
+            res
+    }
+}
+
+impl phy::RxToken for RxToken {
+    fn consume<R, F>(mut self, timestamp: smoltcp::time::Instant, f: F) -> smoltcp::Result<R>
+        where F: FnOnce(&mut [u8]) -> smoltcp::Result<R> {
+            f(&mut self.buffer)
+    }
+}
+
+pub fn init() {
+    if let Some(mut pci_device) = sys::pci::find_device(0x10EC, 0x8139) {
+        pci_device.enable_bus_mastering();
+
+        let io_base = (pci_device.base_addresses[0] as u16) & 0xFFF0;
+        let mut net_device = RTL8139::new(io_base);
+
+        unsafe {
+            net_device.init();
+        }
+
+        if let Some(eth_addr) = net_device.eth_addr {
+            log!("NET RTL8139 MAC {}\n", eth_addr);
+
+            let neighbor_cache = NeighborCache::new(BTreeMap::new());
+            let routes = Routes::new(BTreeMap::new());
+            let ip_addrs = [
+                IpCidr::new(Ipv4Address::UNSPECIFIED.into(), 0),
+            ];
+            let iface = EthernetInterfaceBuilder::new(net_device).
+                ethernet_addr(eth_addr).
+                neighbor_cache(neighbor_cache).
+                ip_addrs(ip_addrs).
+                routes(routes).
+                finalize();
+
+
+            log!("Found {} IPs [{:?}]", iface.ip_addrs().len(), iface.ip_addrs());
+
+            *sys::net::IFACE.lock() = Some(iface);
+        }
+    }
+}
+
+
+
+pub fn interrupt_handler() {
+    debug!("RTL8139 interrupt!\n");
+    if let Some(mut guard) = sys::net::IFACE.try_lock() {
+        if let Some(ref mut iface) = *guard {
+            unsafe { iface.device_mut().ports.isr.write(0xffff) } // Clear the interrupt
+        }
+    }
 }

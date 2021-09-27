@@ -5,13 +5,11 @@ pub mod heap;
 pub mod allocators;
 
 
-use core::{array::from_mut, convert::TryInto};
+use core::{convert::TryInto};
 use bootloader::BootInfo;
 
 use linked_list_allocator::LockedHeap;
-use x86_64::{PhysAddr, VirtAddr, structures::paging::{OffsetPageTable, Translate}};
-
-use crate::println;
+use x86_64::{PhysAddr, VirtAddr, structures::paging::{Translate}};
 
 use crate::println;
 

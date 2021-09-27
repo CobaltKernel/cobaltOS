@@ -173,7 +173,7 @@ impl Writer {
 
     fn write_string_at(&mut self, x:usize, y:usize, s: &str) {
         let mut offset = 0;
-        for (index, byte) in s.bytes().enumerate() {
+        for (_, byte) in s.bytes().enumerate() {
             match byte {
                 // printable ASCII byte or newline
                 0x20..=0x7e | b'\n' | b'\r' => self.write_byte_at(x + offset, y, byte),

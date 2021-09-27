@@ -1,5 +1,5 @@
 
-use x86_64::structures::paging::{FrameAllocator, Mapper, OffsetPageTable, Page, PageSize, PageTable, PhysFrame, Size4KiB, Translate};
+use x86_64::structures::paging::{ OffsetPageTable, PageTable, Translate};
 use x86_64::{PhysAddr, VirtAddr};
 
 

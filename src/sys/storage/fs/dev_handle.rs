@@ -1,6 +1,6 @@
-use alloc::{string::String, vec, vec::Vec};
+use alloc::{vec, vec::Vec};
 
-use crate::sys::storage::fs::DISK_SIZE;
+use crate::sys::{ata, storage::fs::DISK_SIZE};
 
 use super::{BLOCK_SIZE, BlockAddr};
 
@@ -9,6 +9,7 @@ use super::{BLOCK_SIZE, BlockAddr};
 pub trait BlockDeviceIO {
     fn read(&mut self, addr: BlockAddr, buf: &mut [u8]);
     fn write(&mut self, addr: BlockAddr, buf: &[u8]);
+    fn sector_count(&mut self) -> u32;
 }
 
 #[derive(Debug)]
@@ -34,6 +35,14 @@ impl BlockDeviceIO for DeviceHandle {
             Self::ResBlockDevice(dev) => {dev.write(addr, buf)},
         }
     }
+
+    fn sector_count(&mut self) -> u32 {
+        match self {
+            Self::AtaBlockDevice(dev) => {dev.sector_count()},
+            Self::MemBlockDevice(dev) => {dev.sector_count()},
+            Self::ResBlockDevice(dev) => {dev.sector_count()},
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -45,11 +54,17 @@ pub struct ResDevice {/* TODO: Design ResourceDevice Implementation. */}
 
 impl BlockDeviceIO for AtaDevice {
     fn read(&mut self, addr: BlockAddr, buf: &mut [u8]) {
-        todo!()
+        assert!(addr < self.sector_count());
+        ata::read(self.bus, self.disk, addr, buf);
     }
 
     fn write(&mut self, addr: BlockAddr, buf: &[u8]) {
-        todo!()
+        assert!(addr < self.sector_count());
+        ata::write(self.bus, self.disk, addr, buf);
+    }
+
+    fn sector_count(&mut self) -> u32 {
+        ata::sector_count(self.bus, self.disk)
     }
 
 }
@@ -63,6 +78,10 @@ impl BlockDeviceIO for MemDevice {
         todo!()
     }
 
+    
+    fn sector_count(&mut self) -> u32 {
+        todo!()
+    }
 }
 
 impl BlockDeviceIO for ResDevice {
@@ -74,6 +93,9 @@ impl BlockDeviceIO for ResDevice {
         todo!()
     }
 
+    fn sector_count(&mut self) -> u32 {
+        todo!()
+    }
 }
 
 impl MemDevice {

@@ -2,8 +2,6 @@ use uart_16550::SerialPort;
 use spin::Mutex;
 use lazy_static::lazy_static;
 
-use crate::serial;
-
 lazy_static! {
     pub static ref SERIAL1: Mutex<SerialPort> = {
         let mut serial_port = unsafe { SerialPort::new(0x3F8) };
@@ -27,7 +25,7 @@ pub fn read() -> u8 {
 #[macro_export]
 macro_rules! serial_print {
     ($($arg:tt)*) => {
-        $crate::serial::_print(format_args!($($arg)*));
+        $crate::serial::_print(format_args!($($arg)*))
     };
 }
 

@@ -2,7 +2,7 @@
 
 use alloc::vec::Vec;
 
-use crate::{print, println, serial_print, serial_println, sys::{ata, mem, shell::run}};
+use crate::{print, println, serial_print, serial_println, sys::{ata, mem, shell::run, storage::fs::block::Block}};
 
 pub fn main(args: &Vec<&str>) -> usize {
     if args.len() < 2 {
@@ -26,6 +26,11 @@ pub fn main(args: &Vec<&str>) -> usize {
     if args[1] == "copy" {
         if args.len() < 6 { println!("Usage dsk copy <bus src> <drive src> <bus dest> <drive dest>"); return 2 };
         return copy(args);
+    }
+
+    if args[1] == "dump" {
+        if args.len() < 3 { println!("Usage dsk dump <block addr>"); return 2 };
+        return dump_block(args);
     }
     1
 }
@@ -65,17 +70,10 @@ pub fn format(args: &Vec<&str>) -> usize {
     let drive: u8 = args[3].parse().expect("Yeets");
     let sectors = ata::sector_count(bus, drive);
     for block in 0..sectors {
-<<<<<<< HEAD
-        print!("Formatting Block {:04}/{:04} {:04} MB...\r", block, sectors, (block * 512) / mem::MB as u32);
-        ata::write(bus, drive, block, &[0; 512]);
-    }
-    print!("Formatting Block {:04}/{:04}...\n", sectors, sectors);
-=======
         print!("Formatting Block {:04}/{:04} Of Drive {}:{} {:04} MB ...\r", block, sectors, bus, drive, (block * 512) / mem::MB as u32);
         ata::write(bus, drive, block, &[0; 512]);
     }
     print!("Formatting Block {:04}/{:04} Of Drive {}:{} {:04} MB ...\n", sectors, sectors, bus, drive, (sectors * 512) / mem::MB as u32);
->>>>>>> 2d36125 (Removed test.img)
     0
 }
 
@@ -89,14 +87,6 @@ pub fn copy(args: &Vec<&str>) -> usize {
     let drive_dest: u8 = args[5].parse().expect("Yeets");
 
     let dest_sectors = ata::sector_count(bus_dest, drive_dest);
-<<<<<<< HEAD
-
-    run!("dsk format {} {}", bus_dest, drive_dest);
-    if (source_sectors > dest_sectors) {return 3};
-    
-    for block in 0..source_sectors {
-        print!("Formatting Block {:04}/{:04}...\r", block, source_sectors);
-=======
     if source_sectors > dest_sectors {
         run!("echo Disk Is Not Big Enough! ");
         return 3;
@@ -106,16 +96,20 @@ pub fn copy(args: &Vec<&str>) -> usize {
     
     for block in 0..source_sectors {
         print!("Copying Block {:04}/{:04}...\r", block, source_sectors);
->>>>>>> 2d36125 (Removed test.img)
         let mut buffer: [u8; 512] = [0; 512];
         ata::read(bus_src, drive_src, block, &mut buffer);
         ata::write(bus_dest, drive_dest, block, &buffer);
     }
-<<<<<<< HEAD
-    print!("Formatting Block {:04}/{:04}...\r", source_sectors, source_sectors);
-=======
     print!("Copying Block {:04}/{:04}...\n", source_sectors, source_sectors);
->>>>>>> 2d36125 (Removed test.img)
 
     0
+}
+
+fn dump_block(args: &Vec<&str>) -> usize {
+    let addr = args[2].parse().unwrap();
+    let block = Block::read(addr).unwrap();
+
+    println!("{}", block);
+
+    return 0;
 }
