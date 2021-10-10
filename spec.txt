@@ -17,8 +17,9 @@ Abstractions:
 
 
 == To-do ==
-- Add Devices
-0x7000 82371SB PIIX3 ISA 
-0x7010 82371SB PIIX3 IDE
-0x7113 82371AB/EB/MB PIIX4 ACPI 
-0x1111 
+
+
+
+Amendments:
+  09/10/21 - The "Driver/System" model has proved itself to Too complex for the beginning of the CobaltOS Kernel.
+  

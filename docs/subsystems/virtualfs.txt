@@ -1,0 +1,41 @@
+Virtual File System - George V - 09/10/2021
+-------------------------------------------
+
+
+
+The VFS contains 5 components: 
+
+1) Block Device
+    Abstracts a single Block-based device, ie A Hardisk, Ramdisk.
+    - Uses Typed-enums & Traits to allow for easy future use.
+    - Handles Common Device Operations:
+        - Mounting
+        - Unmounting
+        - reading single Blocks
+        - writing single Blocks
+
+2) Inode
+    Holds File information OR Directory information, (Dependent On The Flags)
+    Inodes follow a doubly-linked-tree. Inodes reference their parent
+    (Unless it's the root directory), and reference their children, in a one-to-many relationship.
+    File Structure:
+        - Name: UTF-8 Encoded fixed width string of size 64 Bytes,
+          If the name's Length is less than 64 bytes, fill the remaining chars with whitespace,
+          If the length is greater than 64 Bytes, truncate the name to fit.
+        - Flags: 1 Octet in length:
+          File Type (XX 000): 00 - File - Fi, 01 - Directory - Di, 10 - Device - De.
+          Permissions: (R)ead, (W)rite, e(X)cute.
+          Examples:
+            - Read, Write, File: 00 110 - FiRW- 
+            - Program: 00 011 - Fi-WX
+            - Folder: 01 110 - DiRW-
+            - Terminal: 10 010 - De-W- 
+
+
+3) Bitmap
+    3.1) Inode Bitmap
+    3.2) Block Bitmap
+
+4) Data Blocks
+
+5) Partitions
