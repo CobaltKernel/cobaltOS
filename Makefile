@@ -7,6 +7,7 @@ install_prereqs:
 
 clean:
 	cargo clean
+	qemu-img create drive.img 64M
 
 build:
 	cargo build
@@ -15,7 +16,7 @@ run:
 	cargo run
 
 debug:
-	cargo run --features log_debug
+	cargo run --features log_debug,breakpoints
 
 run_headless:
 	cargo build

@@ -36,6 +36,7 @@ features = ["spin_no_std"]
 vga = []
 headless = []
 log_debug = []
+breakpoints = []
 
 [package.metadata.bootimage]
 run-args = [

@@ -11,6 +11,7 @@ pub mod pci;
 pub mod pci_details;
 pub mod net;
 pub mod clock;
+pub mod vfs;
 
 use x86_64::instructions::port::*;
 

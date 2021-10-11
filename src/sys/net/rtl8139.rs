@@ -191,6 +191,37 @@ impl RTL8139 {
 
             self.ports.tx_config.write(TCR_IFG | TCR_MXDMA0 | TCR_MXDMA1 | TCR_MXDMA2);
     }
+
+    pub fn send(&mut self, data: &[u8]) {
+        let len = data.len();
+        let tx_id = self.tx_id;
+        let buf = &mut self.tx_buffers[tx_id][0..len];
+
+        debug!("Copying Data Into Buffer.");
+        for index in 0..len {
+            buf[index] = data[index];
+        }
+
+        let mut cmd_port = self.ports.tx_cmds[tx_id].clone();
+        unsafe {
+            debug!("Writing Length {} Bytes.", len);
+            cmd_port.write(0x1FFF & len as u32);
+
+            debug!("Waiting For DMA");
+            let old_cmd = cmd_port.read();
+            cmd_port.write(old_cmd & !OWN);
+            debug!("CMD: {:032b}", cmd_port.read());
+            while cmd_port.read() & OWN != OWN {}
+            // 5. When the whole packet is moved to line, the TOK bit is
+            // set to 1.
+            debug!("Waiting For TOK");
+            while cmd_port.read() & TOK != TOK {}
+        }
+    }
+
+    pub fn recv(&mut self, data: &mut [u8]) -> usize {
+        todo!()
+    }
 }
 
 

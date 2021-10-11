@@ -1,10 +1,10 @@
-use core::{fmt::Display, ops::{Index, IndexMut, Range}};
-use bytes::{Bytes, BytesMut};
+use core::{fmt::Display, mem::size_of, ops::{Index, IndexMut, Range}};
+use bytes::{BufMut, Bytes, BytesMut};
 
 use alloc::string::String;
 use core::str;
 
-use crate::{debug, warn};
+use crate::{debug, log, serial_print, serial_println, warn};
 
 use super::{BLOCK_SIZE, BlockAddr, dev_handle::{BlockDeviceIO}, device, is_mounted};
 
@@ -78,24 +78,64 @@ impl<'a> Block<'a> {
     }
 
     pub fn write_str(&mut self, text: &str, offset: usize) -> usize {
-        let size = text.as_bytes().len();
-        let bytes = text.as_bytes();
-        self[offset] = size as u8;
-        self.set_slice_range(1+offset..(1 + offset + size), bytes);
-        self.write();
+        let mut size = 0;
+        for byte in text.as_bytes() {
+            self[offset + size] = *byte;
+            size += 1;
+
+            log!("Wrote '{}'", *byte as char);
+        }
+        self[offset + size] = 0;
         offset + size
     }
 
     pub fn read_str(&self, text: &mut String, offset: usize) -> usize {
-        let size = self[offset];
-        let offset = offset + 1;
-        let end = offset + size as usize;
-        let data = self.slice_range(offset..end);
-        text.push_str(unsafe {str::from_utf8_unchecked(data)});
-        end
+        let mut index = 0;
+        while self[index + offset] != 0 {
+            text.push(self[index + offset] as char);
+            index += 1;
+        }
+        offset + index
+    }
+
+    pub fn read_u16(&self, offset: usize) -> (u16, usize) {
+        const LENGTH: usize = size_of::<u16>();
+        let mut buffer = [0;LENGTH];
+        let slice = self.slice_range(offset..offset+LENGTH);
+        for index in 0..LENGTH {
+            buffer[index] = slice[index];
+        }
+        let value = u16::from_be_bytes(buffer);
+        (value, offset + LENGTH)
+    }
+
+    pub fn read_u8(&self, offset: usize) -> (u8, usize) {
+        const LENGTH: usize = size_of::<u8>();
+        let mut buffer = [0;LENGTH];
+        let slice = self.slice_range(offset..offset+LENGTH);
+        for index in 0..LENGTH {
+            buffer[index] = slice[index];
+        }
+        let value = u8::from_be_bytes(buffer);
+        (value, offset + LENGTH)
+    }
+
+    pub fn read_u32(&self, offset: usize) -> (u32, usize) {
+        const LENGTH: usize = size_of::<u32>();
+        let mut buffer = [0;LENGTH];
+        let slice = self.slice_range(offset..offset+LENGTH);
+        for index in 0..LENGTH {
+            buffer[index] = slice[index];
+        }
+        let value = u32::from_be_bytes(buffer);
+
+        serial_println!("Old Offset: {}, New Offset: {}", offset, offset + LENGTH);
+
+        (value, offset + LENGTH)
     }
 
     pub fn bytes(&self) -> Bytes {
+        log!("Data: {:?}", self.data);
         Bytes::copy_from_slice(&self.data)
     }
 
@@ -109,6 +149,7 @@ impl<'a> Block<'a> {
         for index in 0..buffer.len() {
             if index < BLOCK_SIZE {
             self[index] = buffer[index];
+            log!("buffer[{}] = {:02x}", index, buffer[index]);
             };
         }
         self.write();
@@ -120,6 +161,27 @@ impl<'a> Block<'a> {
         }
         self.write();
     }
+
+    pub fn write_u8(&mut self, offset: usize, value: u8) -> usize {
+        self.set_slice_range(offset..offset+1, &value.to_be_bytes());
+        offset + (u8::BITS / 8) as usize
+    }
+
+    pub fn write_u16(&mut self, offset: usize, value: u16) -> usize {
+        self.set_slice_range(offset..offset+2, &value.to_be_bytes());
+        offset + (u16::BITS / 8) as usize
+    }
+
+    pub fn write_u32(&mut self, offset: usize, value: u32) -> usize {
+        self.set_slice_range(offset..offset+4, &value.to_be_bytes());
+        offset + (u16::BITS / 8) as usize
+    }
+
+    pub fn write_u64(&mut self, offset: usize, value: u64) -> usize {
+        self.set_slice_range(offset..offset+8, &value.to_be_bytes());
+        offset + (u64::BITS / 8) as usize
+    }
+    
 }
 
 impl<'a> Index<usize> for Block<'a> {
@@ -136,6 +198,7 @@ impl<'a> IndexMut<usize> for Block<'a> {
     }
 }
 
+
 // impl<'a> Drop for Block<'a> {
 //     fn drop(&mut self) {
 //         self.write();
@@ -144,13 +207,13 @@ impl<'a> IndexMut<usize> for Block<'a> {
 
 impl<'a> Display for Block<'a> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let bytes_per_row = 16;
+        let bytes_per_row = 8;
         for row in (0..BLOCK_SIZE).step_by(bytes_per_row) {
             let mut char_buffer = String::new();
             for col in 0..bytes_per_row {
-                write!(f,"{:02x} ", self[row * bytes_per_row + col])?;
-                if (0x20..0x7F).contains::<u8>(&self[row * bytes_per_row + col]) {
-                    char_buffer.push(self[row * bytes_per_row + col] as char);
+                write!(f,"{:02x} ", self[row  + col])?;
+                if (0x20..0x7F).contains::<u8>(&self[row + col]) {
+                    char_buffer.push(self[row  + col] as char);
                 } else {
                     char_buffer.push('.');
                 }
@@ -159,4 +222,9 @@ impl<'a> Display for Block<'a> {
         }
         Ok(())
     }
+}
+
+pub struct BlockWriter<'a> {
+    block: Block<'a>,
+    ptr: usize,
 }
