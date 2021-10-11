@@ -1,0 +1,18 @@
+Timer - George V - 09/10/2021
+-------------------------------------------------------------------------------
+
+Interfaces
+-------------------------------------------------------------------------------
+
+- u64 ticks(void)     {...} - Returns The Number Of Ticks That have Ocurred
+                              Since Boot.
+- u64 tick_rate(void) {...} - Returns The Number Of Ticks That Occur In One 
+                              Second.
+- set_tick_rate(u64 rate)  {...} - Set The Tick Rate, in Hertz.
+- set_tick_listener(TickListener listener) {...} - Set An Additional Tick 
+                              Listener, eg A Scheduler.
+
+Components
+-------------------------------------------------------------------------------
+
+`

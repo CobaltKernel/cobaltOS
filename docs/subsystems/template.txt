@@ -1,0 +1,23 @@
+<System Name> - <Author> - <DD/MM/YYYY>
+-------------------------------------------------------------------------------
+
+Overview
+-------------------------------------------------------------------------------
+
+Interfaces
+-------------------------------------------------------------------------------
+
+List ALL PUBLIC interfaces (ie Functions, Structs, Enum, Traits) - Minimum 1, Maximum 32.
+
+function Template
+
+- <return type | void> <path><function_name>(<args> | void) - Description
+
+If the function Panics, Provide a Detailed List Of When it does so; for example:
+
+Good:   - Panics if SoftwareInterruptIndex is less than 256 OR greater than 65536.
+Bad:    - Panics if SoftwareInterruptIndex is invalid.
+
+
+example:
+    - void timer::reset(void)
