@@ -168,9 +168,6 @@ impl RTL8139 {
             self.ports.cmd.write(CR_RST);
             while self.ports.cmd.read() & CR_RST != 0 {}
 
-            // Enable Receive & Transmit
-            self.ports.cmd.write(CR_RE | CR_TE);
-
             // Get the Ethernet Address From the MAC Address
             self.eth_addr = Some(EthernetAddress::from_bytes(&self.ports.mac()));
 
@@ -190,6 +187,9 @@ impl RTL8139 {
             self.ports.rx_config.write(RCR_RBLEN | RCR_WRAP | RCR_AB | RCR_AM | RCR_APM | RCR_AAP);
 
             self.ports.tx_config.write(TCR_IFG | TCR_MXDMA0 | TCR_MXDMA1 | TCR_MXDMA2);
+
+            // Enable Receive & Transmit
+            self.ports.cmd.write(CR_RE | CR_TE);
     }
 
     pub fn send(&mut self, data: &[u8]) {
@@ -242,7 +242,7 @@ impl<'a> Device<'a> for RTL8139 {
 
     fn receive(&'a mut self) -> Option<(Self::RxToken, Self::TxToken)> {
         let cmd = unsafe {self.ports.cmd.read()};
-        if cmd == CR_BUFE {return None};
+        if cmd & CR_BUFE == CR_BUFE {return None};
         let capr = unsafe { self.ports.capr.read() };
         let cbr = unsafe { self.ports.cbr.read() };
 

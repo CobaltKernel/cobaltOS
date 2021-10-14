@@ -25,3 +25,7 @@ run_headless:
 
 test_boot:
 	qemu-system-x86_64 -hda drive.img -serial stdio -device isa-debug-exit,iobase=0xf4,iosize=0x04 -m 32m
+
+
+test:
+	cargo test

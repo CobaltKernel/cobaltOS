@@ -17,8 +17,8 @@ pub fn init() {
     let iface = guard.as_mut();
     if let Some(mut iface) = iface {
         let mut sockets = SocketSet::new(vec![]);
-        let dhcp_rx_buffer = RawSocketBuffer::new([RawPacketMetadata::EMPTY; 1], vec![0; 900]);
-        let dhcp_tx_buffer = RawSocketBuffer::new([RawPacketMetadata::EMPTY; 1], vec![0; 600]);
+        let dhcp_rx_buffer = RawSocketBuffer::new([RawPacketMetadata::EMPTY; 1], vec![0; 1500]);
+        let dhcp_tx_buffer = RawSocketBuffer::new([RawPacketMetadata::EMPTY; 1], vec![0; 1500]);
 
         let timestamp = Instant::from_secs((realtime()) as i64);
         let mut dhcp = Dhcpv4Client::new(&mut sockets, dhcp_rx_buffer, dhcp_tx_buffer, timestamp);
@@ -47,7 +47,7 @@ pub fn init() {
                     println!("Network Error: {}", e);
                 }
                 Ok(state) => {
-                    warn!("OK: {}", state);
+                    //warn!("OK: {}", state);
                 }
             }
 
@@ -56,7 +56,6 @@ pub fn init() {
                 println!("DHCP Error: {:?}", e);
                 None
             });
-            debug!("Response: {:?}", res);
             breakpoint!();
 
             if let Some(config) = res {

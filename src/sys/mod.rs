@@ -60,8 +60,15 @@ pub unsafe fn inportdw(port: u16) -> u32 {
     port.read()
 }
 
-pub fn qemu_exit() -> ! {
-    unsafe {outportdw(0xf4, 0)};
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u32)]
+pub enum QemuExitCode {
+    Success = 0x10,
+    Failed = 0x11,
+}
+
+pub fn qemu_exit(error_code: QemuExitCode) -> ! {
+    unsafe {outportdw(0xf4, error_code as  u32)};
     loop {}
 }
 

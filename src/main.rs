@@ -4,28 +4,25 @@
 #![feature(alloc_error_handler)]
 #![feature(const_btree_new)]
 #![feature(asm)]
+#![feature(custom_test_frameworks)]
+#![test_runner(crate::test_runner)]
+#![reexport_test_harness_main = "test_main"]
+
+
 
 extern crate alloc;
 
-mod serial;
-mod interrupts;
-mod macros;
-
-mod arch;
-
-pub mod sys;
 
 
 use core::panic::PanicInfo;
 
 use alloc::{borrow::ToOwned, string::String, vec::Vec};
-use sys::{mem, timer};
 
-
-use crate::{arch::i386::cmos::{self}, sys::{ata, clock, keyboard, net, pci, storage::fs::{FILETABLE_ADDR, bitmap, file_table}, vfs::filesystem::{DataNode, File, Inode, InodeBitmap, InodeBlocks, InodeFlags, filesystem_values::{self, BLOCK_SIZE}, inode_flags::HIDDEN}}};
 
 use bootloader::{BootInfo, entry_point};
-
+use kernel::*;
+use sys::*;
+use arch::i386::cmos;
 entry_point!(kernel_main);
 
 pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
@@ -40,9 +37,6 @@ pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
 	interrupts::enable();
 	println!("[OK]");
 
-	log!("METADATA Block Size: {}", filesystem_values::METADATA_SIZE);
-	log!("USABLE Block Size: {}", filesystem_values::USABLE_SIZE);
-	log!("Inode Byte Address: 0x{:08x}", filesystem_values::INODE_BASE * BLOCK_SIZE as u32);
 
 
 	let rtc = cmos::CMOS::new().rtc();
@@ -50,8 +44,12 @@ pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
 	println!("Unix TimeStamp: {}", clock::realtime());
 	mem::init(boot_info);
 	pci::init();
-	//net::init();
+	net::init();
 	ata::init();
+
+
+	#[cfg(test)]
+	test_main();
 
 	//breakpoint!();
 
@@ -65,18 +63,19 @@ pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
 	clear!();
 	run!("fs mount ata 0 1");
 	//unsafe {InodeBitmap::erase_all()};
-	let file = File::open_or_create("Test.txt");
-	let mut file = file.unwrap();
-	println!("{:?}", file);
-	println!("File Data: {:?}",file.data());
+	// let file = File::open_or_create("Test.txt");
+	// let mut file = file.unwrap();
+	// println!("{:?}", file);
+	// println!("File Data: {:?}",file.data());
 
-	file.append(0xAA);
+	// file.append(0xAA);
 
-	file.close();
+	// file.close();
+
 
 	
 
-	log!("{:?}", file);
+	//log!("{:?}", file);
 
 
 	//InodeBlocks::debug();
@@ -91,15 +90,12 @@ pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
 	sys::acpi::shutdown();
 }
 
-#[panic_handler]
-fn panic_handler(info: &PanicInfo) -> ! {
-	println!("PANIC: {}", info);
-	err!("PANIC: {}", info);
-	sys::halt();
+#[test_case]
+fn trivial_assertion() {
+    print!("trivial assertion... ");
+    assert_eq!(1, 1);
+    println!("[ok]");
 }
 
-#[alloc_error_handler]
-fn alloc_error_handler(layout: alloc::alloc::Layout) -> ! {
-    panic!("allocation error: {:?}", layout);
-}
+
 

@@ -83,7 +83,7 @@ impl<'a> Block<'a> {
             self[offset + size] = *byte;
             size += 1;
 
-            log!("Wrote '{}'", *byte as char);
+            debug!("Wrote '{}'", *byte as char);
         }
         self[offset + size] = 0;
         offset + size
@@ -129,7 +129,7 @@ impl<'a> Block<'a> {
         }
         let value = u32::from_be_bytes(buffer);
 
-        serial_println!("Old Offset: {}, New Offset: {}", offset, offset + LENGTH);
+        debug!("Old Offset: {}, New Offset: {}", offset, offset + LENGTH);
 
         (value, offset + LENGTH)
     }
@@ -174,7 +174,7 @@ impl<'a> Block<'a> {
 
     pub fn write_u32(&mut self, offset: usize, value: u32) -> usize {
         self.set_slice_range(offset..offset+4, &value.to_be_bytes());
-        offset + (u16::BITS / 8) as usize
+        offset + (u32::BITS / 8) as usize
     }
 
     pub fn write_u64(&mut self, offset: usize, value: u64) -> usize {

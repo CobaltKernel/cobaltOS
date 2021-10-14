@@ -17,7 +17,7 @@ lazy_static! {
 
 pub fn init() {
     rtl8139::init();
-    IFACE.lock().as_mut().unwrap().device_mut().send(b"YEET");
+    dhcp::init();
 }
 
 pub struct NetworkDevice<'a> {

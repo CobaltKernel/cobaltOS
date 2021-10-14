@@ -2,7 +2,7 @@ use core::{fmt::Display, ops::{Index, IndexMut}};
 
 use alloc::{borrow::ToOwned, string::String, vec::Vec};
 
-use crate::{breakpoint, debug, log, print, serial, serial_print, serial_println, sys::{storage::fs::{block::Block, device}, vfs::filesystem::filesystem_values::INODE_BITMAP_BASE}, warn};
+use crate::{breakpoint, debug, log, print, serial, serial_print, serial_println, sys::{storage::fs::{block::Block, device}, vfs::filesystem::{filesystem_values::INODE_BITMAP_BASE, inode_meta::FILENAME_SIZE}}, warn};
 
 use self::{filesystem_values::{BLOCKS_PER_BITMAP, BLOCK_SIZE, DATA_BASE, DATA_BITMAP_SIZE, INODE_BASE, INODE_BITMAP_SIZE, INODE_SIZE, PHYSICAL_OFFSET}, inode_flags::*};
 
@@ -240,7 +240,7 @@ pub struct Inode {
     addr: u32,
     name: String, 
     flags: InodeFlags,
-    parent: Option<u32>,
+    parent: Option<u16>,
     children: Vec<u32>,
     size: u32
 }
@@ -253,26 +253,32 @@ impl Inode {
         let mut name: Vec<u8> = Vec::new();
         let mut offset = 0;
         let mut index = 0;
-        while block[offset] != 0 {
-            name.push(block[offset]);
+        for i in 0..FILENAME_SIZE {
+            if block[offset] != 0 {
+                name.push(block[offset]);
+            } else {
+                name.push(b' ');
+            }
             offset += 1;
         }
 
         offset += index;
-        let name = (*String::from_utf8_lossy(&name)).to_owned();
+        let name = (*String::from_utf8_lossy(&name)).trim().to_owned();
+
 
         let (flags, new_offset) = block.read_u16(offset);
         offset = new_offset;
         let flags = InodeFlags::new(flags);
 
-        let mut parent: Option<u32> = None;
-        let (pid, new_offset) = block.read_u32(offset);
+        let mut parent: Option<u16> = None;
+        let (pid, new_offset) = block.read_u16(offset);
+        debug!("Parent: 0x{:04x} ({})", pid, pid);
         offset = new_offset;
-        if pid < 0xFFFF_FFFF {parent = Some(pid)};
-        let (child_count, new_offset) = block.read_u32(offset);
+        if pid < 0xFFFF {parent = Some(pid)};
+        let (child_count, new_offset) = block.read_u8(offset);
         offset = new_offset;
         let mut children = Vec::new();
-        for i in 0..child_count {
+        for i in 0..=child_count {
             let (child, new_offset) = block.read_u32(offset);
             offset = new_offset;
             children.push(child);
@@ -281,10 +287,10 @@ impl Inode {
         //Read in the Size
         let (size, _) = block.read_u32(offset);
 
-        serial_println!("name: {}",name);
-        serial_println!("size: {} Bytes", size);
-        serial_println!("Child Count: {}", child_count);
-        serial_println!("Children: {:?}", children);
+        debug!("name: {}",name);
+        debug!("size: {} Bytes", size);
+        debug!("Child Count: {}", child_count);
+        debug!("Children: {:?}", children);
 
         Self {
             addr,
@@ -303,15 +309,21 @@ impl Inode {
         let bytes = &mut block;
         let mut offset = 0;
 
-        offset = bytes.write_str(self.name(), offset);
+        for i in 0..FILENAME_SIZE {
+            if i < self.name.len() {
+                offset = bytes.write_u8(offset, self.name.as_bytes()[i]); 
+            } else {
+                offset = bytes.write_u8(offset, b' ')
+            }
+        }
 
 
-        offset += bytes.write_u16(offset, self.flags.value());
+        offset = bytes.write_u16(offset, self.flags.value());
         if let Some(parent) = self.parent() {
             serial_println!("Parent: {}", parent);
-            offset = bytes.write_u32(offset, parent);
+            offset = bytes.write_u16(offset, parent);
         } else {
-            offset = bytes.write_u32(offset,0xFFFF_FFFF);
+            offset = bytes.write_u16(offset,0xFFFF);
         }
         
         offset = bytes.write_u8(offset, self.children.len() as u8);
@@ -333,7 +345,7 @@ impl Inode {
         assert_eq!(block, written);
     }
 
-    pub fn create(name: &str, flags: InodeFlags, parent: Option<u32>) -> Option<Self> {
+    pub fn create(name: &str, flags: InodeFlags, parent: Option<u16>) -> Option<Self> {
         if let Some(inode) = InodeBitmap::allocate_next() {
             Some(
                 Self {
@@ -350,7 +362,7 @@ impl Inode {
         }
     }
 
-    pub fn new(addr: u32, name: String, flags: InodeFlags, children: Vec<u32>, parent: Option<u32>) -> Self {
+    pub fn new(addr: u32, name: String, flags: InodeFlags, children: Vec<u32>, parent: Option<u16>) -> Self {
             Self {
                 addr, 
                 children,
@@ -365,7 +377,7 @@ impl Inode {
         self.flags
     }
 
-    pub fn parent(&self) -> Option<u32> {
+    pub fn parent(&self) -> Option<u16> {
         self.parent
     }
 
@@ -403,11 +415,11 @@ impl Inode {
 pub struct InodeBlocks;
 
 impl InodeBlocks {
-    pub fn create_file(name: &str, parent_dir: Option<u32>) -> Option<Inode> {
+    pub fn create_file(name: &str, parent_dir: Option<u16>) -> Option<Inode> {
         Inode::create(name,  InodeFlags::file(), parent_dir)
     }
 
-    pub fn create_dir(name: &str, parent_dir: Option<u32>) -> Option<Inode> {
+    pub fn create_dir(name: &str, parent_dir: Option<u16>) -> Option<Inode> {
         Inode::create(name,  InodeFlags::dir(), parent_dir)
     }
 
