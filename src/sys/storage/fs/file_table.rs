@@ -66,7 +66,7 @@ impl FileTable {
 
     pub fn locate(name: &String) -> Option<RecordIndex> {
         for record in FILETABLE_ADDR..(FILETABLE_ADDR + FILETABLE_SIZE as u32) {
-            let mut block = Block::read(Self::block_addr(record)).unwrap();
+            let block = Block::read(Self::block_addr(record)).unwrap();
             let offset = block.read_str(&mut "".to_owned(), Self::byte_offset(record));
             let mut file_name = String::new();
             block.read_str(&mut file_name, offset);
@@ -76,7 +76,7 @@ impl FileTable {
     }
 
     pub fn filename(record: RecordIndex, buffer: &mut String) {
-        let mut block = Block::read(Self::block_addr(record)).unwrap();
+        let block = Block::read(Self::block_addr(record)).unwrap();
         let offset = block.read_str(&mut "".to_owned(), Self::byte_offset(record));
         block.read_str(buffer, offset);    
     }

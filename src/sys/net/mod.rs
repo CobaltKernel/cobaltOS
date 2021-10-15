@@ -21,7 +21,7 @@ pub fn init() {
 }
 
 pub struct NetworkDevice<'a> {
-    socket: TcpSocket<'a>,
+    _socket: TcpSocket<'a>,
 }
 
 pub fn mac() -> Option<MacAddress> {

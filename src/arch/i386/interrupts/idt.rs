@@ -36,6 +36,7 @@ pub enum InterruptIndex {
 }
 
 
+#[allow(dead_code)]
 fn interrupt_index(irq: u8) -> u8 {
     super::pics::PIC_1_OFFSET + irq
 }
@@ -103,7 +104,7 @@ extern "x86-interrupt" fn on_double_fault(
 }
 
 
-extern "x86-interrupt" fn on_page_fault(stack_frame: InterruptStackFrame, ec: PageFaultErrorCode) {
+extern "x86-interrupt" fn on_page_fault(_stack_frame: InterruptStackFrame, ec: PageFaultErrorCode) {
 	serial_println!("Page Fault: {:?},  Addr: {:?}",ec,x86_64::registers::control::Cr2::read());
 }
 
@@ -133,7 +134,7 @@ extern "x86-interrupt" fn on_key(_: InterruptStackFrame)
     let mut keyboard = KEYBOARD.lock();
     //let mut port = Port::new(0x60);
 
-    let scancode: u8 = unsafe { inb!(0x60) };
+    let scancode: u8 = inb!(0x60);
     if let Ok(Some(key_event)) = keyboard.add_byte(scancode) {
         if let Some(key) = keyboard.process_keyevent(key_event) {
             keyboard::set_keycode(key);
@@ -158,7 +159,7 @@ extern "x86-interrupt" fn on_ata_bus1_rdy(_: InterruptStackFrame) {
     send_eoi(15);
 }
 
-
+#[allow(dead_code)]
 extern "x86-interrupt" fn default(_: InterruptStackFrame) {
     
 }

@@ -22,7 +22,7 @@ fn mount(args: &Vec<&str>) {
     }
 }
 
-fn mount_ramdisk(args: &Vec<&str>) {
+fn mount_ramdisk(_args: &Vec<&str>) {
     mount_device(DeviceHandle::MemBlockDevice(MemDevice::new()));
 }
 
@@ -67,8 +67,8 @@ fn free(args: &Vec<&str>) {
     println!("Allocated Block 0x{:06x}", addr);
 }
 
-fn list_all(args: &Vec<&str>) {
-    let mut records: Vec<(String, RecordIndex)> = Vec::new();
+fn list_all(_args: &Vec<&str>) {
+    let records: Vec<(String, RecordIndex)> = Vec::new();
     for (name, index) in records {
         println!("{}: {}", index, name);
     }

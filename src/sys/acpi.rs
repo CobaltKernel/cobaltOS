@@ -37,7 +37,7 @@ pub fn shutdown() -> ! {
 
     serial_println!("ACPI Shutdown...");
     let mut aml = AmlContext::new(Box::new(CobaltAmlHandler), aml::DebugVerbosity::None);
-    let mut res = unsafe { AcpiTables::search_for_rsdp_bios(CobaltAcpiHandler)};
+    let res = unsafe { AcpiTables::search_for_rsdp_bios(CobaltAcpiHandler)};
     match res {
         Ok(acpi) => {
             for (id, sdt) in acpi.sdts {

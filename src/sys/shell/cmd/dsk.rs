@@ -35,7 +35,7 @@ pub fn main(args: &Vec<&str>) -> usize {
     1
 }
 
-fn ls(args: &Vec<&str>) -> usize {
+fn ls(_args: &Vec<&str>) -> usize {
     let disks = ata::list();
     for disk in disks {
         println!("Disk {}:{} - Model: {} - Serial: {}, Size: {} {}", disk.0, disk.1, disk.2, disk.3, disk.4, disk.5);

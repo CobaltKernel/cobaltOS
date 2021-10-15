@@ -25,8 +25,8 @@ pub fn init(mapper: &mut impl Mapper<Size4KiB>,
 
     let page_count = page_range.count();
     let mut index: usize = 0;
-    let ten_percent: usize = page_count / 4;
-    let mut progress: usize = 0;
+    let _ten_percent: usize = page_count / 4;
+    let mut _progress: usize = 0;
     for page in page_range {
         let frame = frame_allocator
             .allocate_frame()

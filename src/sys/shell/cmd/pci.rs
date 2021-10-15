@@ -17,7 +17,7 @@ pub fn main(args: &Vec<&str>) -> usize {
     0
 }
 
-fn ls(args: &Vec<&str>) {
+fn ls(_args: &Vec<&str>) {
     let devices = &*pci::PCI_DEVICES.lock();
     for dev in devices {
         println!("{} {}: ", pci_details::vendor(dev.vendor_id), pci_details::device(dev.device_id)); 

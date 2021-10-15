@@ -3,10 +3,10 @@ use core::convert::TryInto;
 use alloc::{collections::BTreeMap, vec::Vec};
 use array_macro::array;
 
-use smoltcp::{iface::{EthernetInterfaceBuilder, NeighborCache, Routes}, phy::{self, Device, DeviceCapabilities}, storage::PacketMetadata, wire::{DhcpPacket, EthernetAddress, Icmpv4Packet, IpCidr, Ipv4Address, Ipv4Packet}};
+use smoltcp::{iface::{EthernetInterfaceBuilder, NeighborCache, Routes}, phy::{self, Device, DeviceCapabilities}, wire::{EthernetAddress, IpCidr, Ipv4Address, Ipv4Packet}};
 use x86_64::instructions::port::Port;
 
-use crate::{breakpoint, debug, log, sys::{self, mem::allocator::PhysBuf, net::dhcp}};
+use crate::{breakpoint, debug, log, sys::{self, mem::allocator::PhysBuf}};
 
 
 //const CRS: u32 = 1 << 31; // Carrier Sense Lost
@@ -219,7 +219,7 @@ impl RTL8139 {
         }
     }
 
-    pub fn recv(&mut self, data: &mut [u8]) -> usize {
+    pub fn recv(&mut self, _data: &mut [u8]) -> usize {
         todo!()
     }
 }
@@ -266,6 +266,7 @@ impl<'a> Device<'a> for RTL8139 {
         };
 
         let n = u16::from_le_bytes(self.rx_buffer[(offset + 2)..(offset + 4)].try_into().unwrap()) as usize;
+        #[allow(unused)]
         let len = n - 4;
         debug!("Packet Size: {} Bytes.", len);
 
@@ -309,13 +310,13 @@ impl<'a> Device<'a> for RTL8139 {
 }
 
 impl phy::TxToken for TxToken {
-    fn consume<R, F>(mut self, timestamp: smoltcp::time::Instant, len: usize, f: F) -> smoltcp::Result<R>
+    fn consume<R, F>(mut self, _timestamp: smoltcp::time::Instant, len: usize, f: F) -> smoltcp::Result<R>
         where F: FnOnce(&mut [u8]) -> smoltcp::Result<R> {
             let tx_id = self.device.tx_id;
             let mut buf = &mut self.device.tx_buffers[tx_id][0..len];
 
             debug!("Transmitting {} Bytes...", buf.len());
-            let mut packet= Ipv4Packet::new_unchecked(&buf);
+            let mut _packet= Ipv4Packet::new_unchecked(&buf);
             debug!("Packet Protocol: {:?}", packet.protocol());
     
             // 1. Copy the packet to a physically contiguous buffer in memory.
@@ -353,7 +354,7 @@ impl phy::TxToken for TxToken {
 }
 
 impl phy::RxToken for RxToken {
-    fn consume<R, F>(mut self, timestamp: smoltcp::time::Instant, f: F) -> smoltcp::Result<R>
+    fn consume<R, F>(mut self, _timestamp: smoltcp::time::Instant, f: F) -> smoltcp::Result<R>
         where F: FnOnce(&mut [u8]) -> smoltcp::Result<R> {
             debug!("[{ }] Revcuieb", timestamp);
             f(&mut self.buffer)

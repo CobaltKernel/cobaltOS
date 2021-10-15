@@ -70,11 +70,11 @@ impl BlockDeviceIO for AtaDevice {
 }
 
 impl BlockDeviceIO for MemDevice {
-    fn read(&mut self, addr: BlockAddr, buf: &mut [u8]) {
+    fn read(&mut self, _addr: BlockAddr, _buf: &mut [u8]) {
         todo!()
     }
 
-    fn write(&mut self, addr: BlockAddr, buf: &[u8]) {
+    fn write(&mut self, _addr: BlockAddr, _buf: &[u8]) {
         todo!()
     }
 
@@ -85,11 +85,11 @@ impl BlockDeviceIO for MemDevice {
 }
 
 impl BlockDeviceIO for ResDevice {
-    fn read(&mut self, addr: BlockAddr, buf: &mut [u8]) {
+    fn read(&mut self, _addr: BlockAddr, _buf: &mut [u8]) {
         todo!()
     }
 
-    fn write(&mut self, addr: BlockAddr, buf: &[u8]) {
+    fn write(&mut self, _addr: BlockAddr, _buf: &[u8]) {
         todo!()
     }
 

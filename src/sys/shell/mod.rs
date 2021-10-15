@@ -1,7 +1,6 @@
 use alloc::{string::String, vec::Vec};
 use alloc::format;
 use crate::{clear, print, println, sys::{self, mem}};
-use lazy_static::lazy_static;
 use crate::run;
 
 mod cmd;
@@ -10,38 +9,6 @@ use super::keyboard;
 
 pub type ShellProgram = fn(&Vec<&str>) -> usize;
 
-struct ShellState {
-    command: String,
-}
-
-lazy_static! {
-}
-static mut state: ShellState = ShellState::new();
-
-impl ShellState {
-    pub const fn new() -> Self {
-        ShellState {
-            command: String::new(),
-        }
-    }
-
-    pub fn reset(&mut self) {
-        self.command = String::new();
-    }
-
-    pub fn add_char(&mut self, chr: char) {
-        self.command.push(chr)
-    }
-
-    pub fn backspace(&mut self) {
-        self.command.pop();
-    }
-
-    pub fn command(&self) -> &String {
-        &self.command
-    }
-
-}
 
 pub fn start() {
     sys::keyboard::consume_char();
@@ -189,7 +156,7 @@ fn watch(args: &Vec<&str>) -> usize {
     }
 }
 
-fn test_exit(args: &Vec<&str>) -> usize {
+fn test_exit(_args: &Vec<&str>) -> usize {
     if let Some(keycode) = keyboard::consume_char() {
         if keycode == '\x1b' {
             return 1;

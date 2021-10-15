@@ -5,7 +5,7 @@ use alloc::vec::Vec;
 use crate::sys::keyboard;
 use crate::{clear_line, print_at, run, set_style};
 use crate::sys::vga::Color;
-pub fn main(args: &Vec<&str>) -> usize {
+pub fn main(_args: &Vec<&str>) -> usize {
     run!("clear");
     
     let mut text_buffer = String::new();

@@ -1,10 +1,10 @@
 use core::{fmt::Display, mem::size_of, ops::{Index, IndexMut, Range}};
-use bytes::{BufMut, Bytes, BytesMut};
+use bytes::{Bytes, BytesMut};
 
 use alloc::string::String;
 use core::str;
 
-use crate::{debug, log, serial_print, serial_println, warn};
+use crate::{debug, log, warn};
 
 use super::{BLOCK_SIZE, BlockAddr, dev_handle::{BlockDeviceIO}, device, is_mounted};
 
@@ -222,9 +222,4 @@ impl<'a> Display for Block<'a> {
         }
         Ok(())
     }
-}
-
-pub struct BlockWriter<'a> {
-    block: Block<'a>,
-    ptr: usize,
 }

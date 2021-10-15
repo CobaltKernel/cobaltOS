@@ -84,11 +84,11 @@ impl Bitmap {
 
     pub fn visualize(start: u32) {
         clear!();
-        let mut offset = 0;
+        let mut _offset = 0;
         let start = start + DATA_ADDR;
         let width = 80 as usize;
         let height = 20 as usize;
-        let length = width * height;
+        let _length = width * height;
         for y in 0..height {
             for x in 0..width {
                 let addr = ((x as usize) + (y as usize) * width) + start as usize;
@@ -108,11 +108,11 @@ impl Bitmap {
 
     pub fn visualize_bin(start: u32) {
         clear!();
-        let mut offset = 0;
+        let mut _offset = 0;
         let start = start + DATA_ADDR;
         let width = 80 as usize;
         let height = 20 as usize;
-        let length = width * height;
+        let _length = width * height;
         for y in 0..height {
             for x in 0..width {
                 let addr = ((x as usize) + (y as usize) * width) + start as usize;

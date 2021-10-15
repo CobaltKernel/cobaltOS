@@ -7,7 +7,7 @@ use smoltcp::dhcp::Dhcpv4Client;
 use smoltcp::socket::{RawPacketMetadata, RawSocketBuffer, SocketSet};
 use smoltcp::time::{Instant};
 use smoltcp::wire::{IpCidr, Ipv4Address, Ipv4Cidr};
-use crate::{breakpoint, debug, println, warn};
+use crate::{breakpoint, println, warn};
 use crate::sys::clock::realtime;
 use crate::sys::timer::pause;
 
@@ -46,8 +46,7 @@ pub fn init() {
                 Err(e) => {
                     println!("Network Error: {}", e);
                 }
-                Ok(state) => {
-                    //warn!("OK: {}", state);
+                Ok(_) => {
                 }
             }
 

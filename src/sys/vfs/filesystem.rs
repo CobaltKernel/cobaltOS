@@ -2,12 +2,12 @@ use core::{fmt::Display, ops::{Index, IndexMut}};
 
 use alloc::{borrow::ToOwned, string::String, vec::Vec};
 
-use crate::{breakpoint, debug, log, print, serial, serial_print, serial_println, sys::{storage::fs::{block::Block, device}, vfs::filesystem::{filesystem_values::INODE_BITMAP_BASE, inode_meta::FILENAME_SIZE}}, warn};
+use crate::{breakpoint, debug, log, print, serial_print, serial_println, sys::{storage::fs::{block::Block}, vfs::filesystem::{inode_meta::FILENAME_SIZE}}, warn};
 
-use self::{filesystem_values::{BLOCKS_PER_BITMAP, BLOCK_SIZE, DATA_BASE, DATA_BITMAP_SIZE, INODE_BASE, INODE_BITMAP_SIZE, INODE_SIZE, PHYSICAL_OFFSET}, inode_flags::*};
+use self::{filesystem_values::{BLOCKS_PER_BITMAP, BLOCK_SIZE, DATA_BASE, INODE_BASE, INODE_BITMAP_SIZE, INODE_SIZE, PHYSICAL_OFFSET}, inode_flags::*};
 
 use bit_field::BitField;
-use bytes::{Buf, BufMut, Bytes};
+
 
 
 pub mod inode_meta {
@@ -252,8 +252,8 @@ impl Inode {
         let block = Block::read(Self::physical_addr(addr)).unwrap();
         let mut name: Vec<u8> = Vec::new();
         let mut offset = 0;
-        let mut index = 0;
-        for i in 0..FILENAME_SIZE {
+        let index = 0;
+        for _ in 0..FILENAME_SIZE {
             if block[offset] != 0 {
                 name.push(block[offset]);
             } else {
@@ -278,7 +278,7 @@ impl Inode {
         let (child_count, new_offset) = block.read_u8(offset);
         offset = new_offset;
         let mut children = Vec::new();
-        for i in 0..=child_count {
+        for _ in 0..=child_count {
             let (child, new_offset) = block.read_u32(offset);
             offset = new_offset;
             children.push(child);
@@ -332,7 +332,7 @@ impl Inode {
         }
 
         // Write The Size Out
-        offset = bytes.write_u32(offset, self.size);
+        bytes.write_u32(offset, self.size);
 
         block.write();
 
@@ -475,8 +475,8 @@ impl DataBlocks {
 
 
 pub struct SuperBlock {
-    partition_num: u32,
-    physical_offset: u32,
+    _partition_num: u32,
+    _physical_offset: u32,
 }
 
 pub struct DataNode {
@@ -542,6 +542,7 @@ impl IndexMut<usize> for DataNode {
     }
 }
 
+#[allow(unused)]
 pub struct Directory {
     inode: Inode,
     children: Vec<Inode>,
@@ -681,7 +682,7 @@ impl File {
         DataBlocks::allocate(chunks.len(), &mut blocks);
         serial_print!("Writing To Disk");
         for (idx,chunk) in chunks.enumerate() {
-            let mut block = &mut blocks[idx];
+            let block = &mut blocks[idx];
             for idx in 0..chunk.len() {
                 block[idx] = chunk[idx];
             }
