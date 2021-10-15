@@ -2,6 +2,7 @@ install_prereqs:
 	sudo apt-get install build-essential -y
 	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 	cargo install bootimage
+	cargo install cargo-release
 	rustup component add rust-src
 	rustup component add llvm-tools-preview
 	sudo apt-get install qemu-system -y
@@ -34,3 +35,9 @@ test_boot:
 
 test:
 	cargo test
+
+patch:
+	cargo release patch
+
+release:
+	cargo release release
