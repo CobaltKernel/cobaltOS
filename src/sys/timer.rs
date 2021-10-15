@@ -5,12 +5,12 @@ use crate::log;
 use super::pit::set_freq;
 static TIMER: Mutex<u128> = Mutex::new(0);
 pub const TICKS_PER_SECOND: f64 = 1000.6789606035205f64;
-// TODO(Capt. Autism): Wrap contents into a without_interrupts closure to make interrupt-safe. 
+// TODO(George): Wrap contents into a without_interrupts closure to make interrupt-safe. 
 pub fn increment() {
 	*TIMER.lock() += 1;
 }
 
-// TODO(Capt. Autism): Wrap contents into a without_interrupts closure to make interrupt-safe.
+// TODO(George): Wrap contents into a without_interrupts closure to make interrupt-safe.
 pub fn clear() {
 	without_interrupts(|| {
 		log!("Reset Timer");
