@@ -1,6 +1,6 @@
 [package]
-name = "kernel"
-version = "0.1.1"
+name = "CobaltOS"
+version = "0.1.0"
 edition = "2018"
 description = "A Simple x64 Kernel"
 license = "MIT"

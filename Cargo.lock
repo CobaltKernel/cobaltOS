@@ -3,6 +3,28 @@
 version = 3
 
 [[package]]
+name = "CobaltOS"
+version = "0.1.0"
+dependencies = [
+ "acpi",
+ "aml",
+ "array-macro",
+ "bit_field",
+ "bootloader",
+ "bytes",
+ "lazy_static",
+ "linked_list_allocator",
+ "pc-keyboard",
+ "pic8259",
+ "serde",
+ "smoltcp",
+ "spin",
+ "uart_16550",
+ "volatile 0.2.7",
+ "x86_64",
+]
+
+[[package]]
 name = "acpi"
 version = "4.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -85,28 +107,6 @@ name = "funty"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1847abb9cb65d566acd5942e94aea9c8f547ad02c98e1649326fc0e8910b8b1e"
-
-[[package]]
-name = "kernel"
-version = "0.1.1"
-dependencies = [
- "acpi",
- "aml",
- "array-macro",
- "bit_field",
- "bootloader",
- "bytes",
- "lazy_static",
- "linked_list_allocator",
- "pc-keyboard",
- "pic8259",
- "serde",
- "smoltcp",
- "spin",
- "uart_16550",
- "volatile 0.2.7",
- "x86_64",
-]
 
 [[package]]
 name = "lazy_static"
