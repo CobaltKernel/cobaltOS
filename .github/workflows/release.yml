@@ -1,0 +1,26 @@
+name: Rust
+
+on:
+  push: 
+    branches: ["production"]
+  
+
+env:
+  CARGO_TERM_COLOR: always
+  CRATES_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install
+      run: |
+        cargo install bootimage
+        rustup component add llvm-tools-preview
+        rustup component add rust-src
+        cargo install cargo-release
+        cargo login "$CRATES_TOKEN"
+        cargo release -no-confirm release
