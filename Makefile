@@ -37,6 +37,8 @@ test:
 	cargo test
 
 patch:
+	git add .
+	git commit --amend
 	cargo release patch
 
 release:
