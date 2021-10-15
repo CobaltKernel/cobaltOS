@@ -36,5 +36,6 @@ jobs:
         rustup component add llvm-tools-preview
         rustup component add rust-src
         sudo apt install qemu-system
+        qemu-img create drive.img 128MB
     - name: Test
       run: make test
