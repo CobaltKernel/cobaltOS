@@ -15,6 +15,7 @@ use arch::i386::cmos;
 entry_point!(kernel_main);
 
 pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
+
 	clear!();
 	print!("Initializing Interrupts...");
 	interrupts::init();
@@ -36,11 +37,11 @@ pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
 	net::init();
 	ata::init();
 
-	//println!("{}", config::Interface::get());
-
-
 	#[cfg(test)]
 	test_main();
+
+	//println!("{}", config::Interface::get());
+
 
 	//breakpoint!();
 

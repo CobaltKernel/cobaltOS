@@ -6,7 +6,7 @@ use array_macro::array;
 use smoltcp::{iface::{EthernetInterfaceBuilder, NeighborCache, Routes}, phy::{self, Device, DeviceCapabilities}, wire::{EthernetAddress, IpCidr, Ipv4Address, Ipv4Packet}};
 use x86_64::instructions::port::Port;
 
-use crate::{breakpoint, debug, log, sys::{self, mem::allocator::PhysBuf}};
+use crate::{breakpoint, debug, log, sys::{self, device_manager, mem::allocator::PhysBuf}};
 
 
 //const CRS: u32 = 1 << 31; // Carrier Sense Lost
@@ -354,7 +354,7 @@ impl phy::TxToken for TxToken {
 }
 
 impl phy::RxToken for RxToken {
-    fn consume<R, F>(mut self, _timestamp: smoltcp::time::Instant, f: F) -> smoltcp::Result<R>
+    fn consume<R, F>(mut self, timestamp: smoltcp::time::Instant, f: F) -> smoltcp::Result<R>
         where F: FnOnce(&mut [u8]) -> smoltcp::Result<R> {
             debug!("[{ }] Revcuieb", timestamp);
             f(&mut self.buffer)
@@ -362,7 +362,7 @@ impl phy::RxToken for RxToken {
 }
 
 pub fn init() {
-    if let Some(mut pci_device) = sys::pci::find_device(0x10EC, 0x8139) {
+    if let Some(device_manager::Device::PCIDev(mut pci_device)) = device_manager::get_device("PCI:REALTEK:RTL8139") {
         pci_device.enable_bus_mastering();
 
         let io_base = (pci_device.base_addresses[0] as u16) & 0xFFF0;

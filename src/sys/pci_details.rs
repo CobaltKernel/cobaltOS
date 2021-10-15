@@ -21,3 +21,18 @@ pub fn device(id: u16) -> String {
         _ => return String::from("UNKNOWN"),
     }
 }
+
+pub fn from_dev_str(dev: &str) -> u16 {
+    match dev.to_ascii_lowercase().as_str() {
+        "rtl8139" => 0x8139,
+        _ => 0
+    }
+}
+
+pub fn from_vendor_str(vendor: &str) -> u16 {
+    match vendor.to_ascii_lowercase().as_str() {
+        "realtek" => 0x10EC,
+        _ => 0
+    }
+}
+

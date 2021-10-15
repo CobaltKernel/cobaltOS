@@ -9,13 +9,13 @@
 #![reexport_test_harness_main = "test_main"]
 
 extern crate alloc;
+use bootloader::BootInfo;
 
 pub mod serial;
 pub mod interrupts;
 pub mod macros;
 pub mod arch;
 pub mod sys;
-pub mod config;
 
 
 use core::panic::PanicInfo;
@@ -53,7 +53,33 @@ pub fn test_panic_handler(info: &PanicInfo) -> ! {
 /// Entry point for `cargo test`
 #[cfg(test)]
 #[no_mangle]
-pub extern "C" fn _start() -> ! {
+pub extern "C" fn _start(boot_info: &'static BootInfo) -> ! {
+    use core::mem;
+
+    use bootloader::BootInfo;
+
+    use crate::{arch::i386::cmos, sys::{clock, net, pci, timer}};
+
+    clear!();
+	print!("Initializing Interrupts...");
+	interrupts::init();
+	println!("[OK]");
+	print!("Initializing Timer...");
+	timer::init();
+	println!("[OK]");
+	print!("Enabling Interrupts...");
+	interrupts::enable();
+	println!("[OK]");
+
+
+
+	let rtc = cmos::CMOS::new().rtc();
+	println!("Current Time: {}/{}/20{} {}:{}:{}", rtc.day, rtc.month, rtc.year, rtc.hour, rtc.minute, rtc.second);
+	println!("Unix TimeStamp: {}", clock::realtime());
+	sys::mem::init(boot_info);
+	pci::init();
+	net::init();
+	sys::ata::init();
     test_main();
     loop {}
 }

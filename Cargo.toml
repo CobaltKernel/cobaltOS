@@ -49,9 +49,12 @@ run-args = [
     "-device", "rtl8139,netdev=network0,mac=52:54:00:12:34:56"
     ]
 test-args = [
-    "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04", 
+    "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04",
     "-m", "128M", 
-    "-serial", "stdio",
+    "-serial", "stdio", 
+    "-hdb", "drive.img",
+    "-netdev", "user,id=network0", 
+    "-device", "rtl8139,netdev=network0,mac=52:54:00:12:34:56",
     "-display", "none"
     ]
 test-timeout = 300  
