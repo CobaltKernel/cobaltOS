@@ -38,8 +38,10 @@ test:
 
 patch:
 	git add .
-	git commit --amend
+	git commit --amend -m "Release Patch"
 	cargo release patch
 
 release:
-	cargo release release
+	git add .
+	git commit --amend -m "Release"
+	cargo release

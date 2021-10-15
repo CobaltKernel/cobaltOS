@@ -5,11 +5,11 @@
 #![feature(const_btree_new)]
 #![feature(asm)]
 #![feature(custom_test_frameworks)]
-#![test_runner(crate::test_runner)]
+#![test_runner(CobaltOS::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 extern crate alloc;
 use bootloader::{BootInfo, entry_point};
-use kernel::*;
+use CobaltOS::*;
 use sys::*;
 use arch::i386::cmos;
 entry_point!(kernel_main);
