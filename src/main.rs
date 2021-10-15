@@ -36,6 +36,8 @@ pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
 	net::init();
 	ata::init();
 
+	//println!("{}", config::Interface::get());
+
 
 	#[cfg(test)]
 	test_main();

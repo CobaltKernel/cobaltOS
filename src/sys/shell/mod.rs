@@ -1,5 +1,6 @@
 use alloc::{string::String, vec::Vec};
 use alloc::format;
+use crate::arch::i386::cmos::CMOS;
 use crate::{clear, print, println, sys::{self, mem}};
 use crate::run;
 
@@ -77,6 +78,8 @@ fn pause(args: &Vec<&str>) -> usize {
 
 fn uptime(_args: &Vec<&str>) -> usize {
     println!("System Uptime: {:0.3} seconds" , sys::timer::uptime_seconds());
+    let rtc = CMOS::new().rtc();
+    println!("Current Time: {}:{}:{}",rtc.hour, rtc.minute, rtc.second );
     return 0;
 }
 
@@ -166,6 +169,8 @@ fn test_exit(_args: &Vec<&str>) -> usize {
     };
     return 0;
 }
+
+
 
 #[macro_export]
 macro_rules! run {

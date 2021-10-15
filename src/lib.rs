@@ -15,6 +15,7 @@ pub mod interrupts;
 pub mod macros;
 pub mod arch;
 pub mod sys;
+pub mod config;
 
 
 use core::panic::PanicInfo;
