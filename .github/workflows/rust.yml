@@ -24,3 +24,17 @@ jobs:
         sudo apt install qemu-system
     - name: Build
       run: make build
+
+  test:
+
+    runs-on: ubuntu
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install
+      run: |
+        cargo install bootimage
+        rustup component add llvm-tools-preview
+        rustup component add rust-src
+        sudo apt install qemu-system
+    - name: Test
+      run: make test

@@ -4,13 +4,12 @@ use core::fmt::Write;
 
 use alloc::string::String;
 use lazy_static::lazy_static;
-use smoltcp::{socket::TcpSocket, wire::{EthernetAddress, IpAddress, Ipv4Address}};
+use smoltcp::{socket::TcpSocket, };
 use spin::Mutex;
 
 pub type EthernetInterface<T> = smoltcp::iface::EthernetInterface<'static, T>;
 
 pub mod rtl8139;
-pub mod socket;
 
 // pub fn local_endpoint() -> IpAddress {
 //     (*IFACE.lock()).unwrap().ip_addrs()[0].address()
