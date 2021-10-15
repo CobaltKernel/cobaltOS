@@ -48,6 +48,7 @@ macro_rules! breakpoint {
         
         $crate::println!(concat!("Breakpoint @ {}:{}:{}: ", $fmt), file!(), line!(), column!(), $($arg)*);
         $crate::serial_println!(concat!("Breakpoint @ {}:{}:{}: ", $fmt), file!(), line!(), column!(), $($arg)*);
+        #[cfg(feature = "breakpoint")]
         x86_64::instructions::interrupts::int3();
         
     };

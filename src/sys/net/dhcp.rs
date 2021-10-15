@@ -85,6 +85,8 @@ pub fn init() {
                 if !dns_servers.is_empty() {
                     println!("DNS: {}", dns_servers.join(", "));
                 }
+
+                return;
             }
 
             if let Some(wait_duration) = iface.poll_delay(&sockets, timestamp) {

@@ -15,8 +15,11 @@ build:
 run:
 	cargo run
 
-debug:
+debug-bp:
 	cargo run --features log_debug,breakpoints
+
+debug:
+	cargo run --features log_debug
 
 run_headless:
 	cargo build
