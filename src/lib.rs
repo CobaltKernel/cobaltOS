@@ -4,6 +4,9 @@
 #![feature(alloc_error_handler)]
 #![feature(const_btree_new)]
 #![feature(asm)]
+
+#![feature(naked_functions)]
+
 #![feature(custom_test_frameworks)]
 #![test_runner(crate::test_runner)]
 #![reexport_test_harness_main = "test_main"]
@@ -110,6 +113,7 @@ fn alloc_error_handler(layout: alloc::alloc::Layout) -> ! {
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);
+    serial_println!("{}", info);
     sys::halt();
 }
 

@@ -27,6 +27,10 @@ array-macro = "2.1.0"
 
 serde = { version = "1.0", default-features = false, features = ["derive", "alloc"] }
 # toml =  {version = "0.5.8", default_features = false}
+block_device = "0.1.2"
+
+
+ustar = {version = "0.1.0", default-features = false, path = "./submodules/ustar"}
 
 
 [dependencies.lazy_static]

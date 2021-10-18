@@ -1,7 +1,7 @@
 
 use spin::Mutex;
 use x86_64::{instructions::{interrupts, port::Port}, structures::idt::{InterruptStackFrame, InterruptDescriptorTable, PageFaultErrorCode}};
-use crate::{inb, println, serial, serial_print, serial_println, sys::{self, keyboard}};
+use crate::{arch::i386::syscalls, debug, inb, println, serial, serial_print, serial_println, sys::{self, keyboard}};
 use super::{gdt, pics::{PIC_1_OFFSET, send_eoi}};
 use super::pics;
 
@@ -83,6 +83,13 @@ lazy_static! {
         idt[InterruptIndex::Lpt1.as_usize()].set_handler_fn(on_spurious_irq);
         idt[InterruptIndex::PrimaryAta.as_usize()].set_handler_fn(on_ata_bus0_rdy);
         idt[InterruptIndex::SecondaryAta.as_usize()].set_handler_fn(on_ata_bus1_rdy);
+
+        unsafe {
+        idt[0x80].
+                set_handler_fn(core::mem::transmute(wrap_syscall as *mut fn())).
+                set_stack_index(0).
+                set_privilege_level(x86_64::PrivilegeLevel::Ring0);
+        }
         idt
     };
 }
@@ -104,8 +111,11 @@ extern "x86-interrupt" fn on_double_fault(
 }
 
 
-extern "x86-interrupt" fn on_page_fault(_stack_frame: InterruptStackFrame, ec: PageFaultErrorCode) {
-	serial_println!("Page Fault: {:?},  Addr: {:?}",ec,x86_64::registers::control::Cr2::read());
+extern "x86-interrupt" fn on_page_fault(stack_frame: InterruptStackFrame, ec: PageFaultErrorCode) {
+	let ip = stack_frame.instruction_pointer.as_ptr();
+    let inst: [u8; 8] = unsafe { core::ptr::read(ip) };
+    println!("Code: {:?}", inst);
+    panic!("EXCEPTION: PAGE FAULT\n{:#?}\n{:#?}", stack_frame, ec);
 }
 
 extern "x86-interrupt" fn on_timer_tick(
@@ -192,4 +202,89 @@ pub fn clear_irq_mask(irq: u8) {
         let value = port.read() & !(1 << if irq < 8 { irq } else { irq - 8 });
         port.write(value);
     }
+}
+
+
+#[repr(align(8), C)]
+#[derive(Debug, Clone, Default)]
+pub struct Registers {
+    r15: usize,
+    r14: usize,
+    r13: usize,
+    r12: usize,
+    r11: usize,
+    r10: usize,
+    r9: usize,
+    r8: usize,
+    rdi: usize,
+    rsi: usize,
+    rdx: usize,
+    rcx: usize,
+    rbx: usize,
+    rax: usize,
+    rbp: usize,
+}
+
+
+macro_rules! wrap {
+    ($fn: ident => $w:ident) => {
+        #[naked]
+        pub unsafe extern "sysv64" fn $w() {
+            asm!(
+                "push rbp",
+                "push rax",
+                "push rbx",
+                "push rcx",
+                "push rdx",
+                "push rsi",
+                "push rdi",
+                "push r8",
+                "push r9",
+                "push r10",
+                "push r11",
+                "push r12",
+                "push r13",
+                "push r14",
+                "push r15",
+                "mov rsi, rsp", // Arg #2: register list
+                "mov rdi, rsp", // Arg #1: interupt frame
+                "add rdi, 15 * 8",
+                "call {}",
+                "pop r15",
+                "pop r14",
+                "pop r13",
+                "pop r12",
+                "pop r11",
+                "pop r10",
+                "pop r9",
+                "pop r8",
+                "pop rdi",
+                "pop rsi",
+                "pop rdx",
+                "pop rcx",
+                "pop rbx",
+                "pop rax",
+                "pop rbp",
+                "iretq",
+                sym $fn,
+                options(noreturn)
+            );
+        }
+    };
+}
+
+wrap!(syscall_handler => wrap_syscall);
+
+
+extern "sysv64" fn syscall_handler(_stack_frame: &mut InterruptStackFrame, regs: &mut Registers) {
+    // The registers order follow the System V ABI convention
+    let n    = regs.rax;
+    let arg1 = regs.rdi;
+    let arg2 = regs.rsi;
+    let arg3 = regs.rdx;
+    debug!("Syscall(0x{:08x}, 0x{:08x}, 0x{:08x}, 0x{:08x})", n, arg1, arg2, arg3);
+
+    regs.rax = syscalls::dispatch(n, arg1, arg2, arg3);
+
+    send_eoi(15);
 }

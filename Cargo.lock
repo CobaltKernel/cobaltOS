@@ -57,6 +57,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "block_device"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d73c55835cc76243c11580a55eff3f31250b00105a744015b8957ed4203fb8ad"
+
+[[package]]
 name = "bootloader"
 version = "0.9.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -88,6 +94,7 @@ dependencies = [
  "aml",
  "array-macro",
  "bit_field",
+ "block_device",
  "bootloader",
  "bytes",
  "lazy_static",
@@ -98,6 +105,7 @@ dependencies = [
  "smoltcp",
  "spin",
  "uart_16550",
+ "ustar",
  "volatile 0.2.7",
  "x86_64",
 ]
@@ -282,6 +290,13 @@ name = "unicode-xid"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ccb82d61f80a663efe1f787a51b16b5a51e3314d6ac365b08639f52387b33f3"
+
+[[package]]
+name = "ustar"
+version = "0.1.0"
+dependencies = [
+ "block_device",
+]
 
 [[package]]
 name = "volatile"

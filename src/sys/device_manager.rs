@@ -7,16 +7,32 @@ pub enum Device {
     BlockDev(DeviceHandle),
 }
 
+impl Device {
+    pub fn block_dev(&self) -> Option<&DeviceHandle> {
+        match self {
+            Self::PCIDev(_) => {None},
+            Self::BlockDev(handle) => Some(handle)
+        }
+    }
+
+    pub fn pci_dev(&self) -> Option<&DeviceConfig> {
+        match self {
+            Self::PCIDev(handler) => Some(handler),
+            Self::BlockDev(_) => None,
+        }
+    }
+}
+
 /// Converts A Path Formatted in <ATA|MEM|PCI>:ID
 /// Example:
 ///     ATA:0:0
 ///     MEM
 ///     PCI:REALTEK:RTL8139
 pub fn get_device(path: &str) -> Option<Device> {
-    let sections: Vec<&str> = path.split(":").collect();
+    let sections: Vec<&str> = path.split("/").collect();
     match sections[0] {
         "PCI" => build_pci(&sections),
-        "ATA" => build_pci(&sections),
+        "ATA" => build_ata(&sections),
         "MEM" => build_mem(),
         _ => None,
     }
@@ -43,7 +59,7 @@ fn build_mem() -> Option<Device> {
 /// id[2] => Drive Index
 fn build_ata(id: &Vec<&str>) -> Option<Device> {
     let bus: u8 = id[1].parse().expect("Failed To Parse Value");
-    let drive: u8 = id[1].parse().expect("Failed To Parse Value");
+    let drive: u8 = id[2].parse().expect("Failed To Parse Value");
     return Some(Device::BlockDev(DeviceHandle::AtaBlockDevice(AtaDevice::new(bus, drive))))
 }
 

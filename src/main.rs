@@ -10,8 +10,17 @@
 extern crate alloc;
 use bootloader::{BootInfo, entry_point};
 use cobalt_os::*;
+use cobalt_os::arch::i386::syscalls::calls;
 use sys::*;
-use arch::i386::cmos;
+use arch::i386;
+use i386::interrupts::*;
+use i386::cmos;
+use i386::syscalls;
+use storage::fs::{dev_handle::*};
+use device_manager::Device;
+use alloc::vec::Vec;
+
+use ustar::TarFileSystem;
 entry_point!(kernel_main);
 
 pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
@@ -37,6 +46,9 @@ pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
 	net::init();
 	ata::init();
 
+	
+	
+
 	#[cfg(test)]
 	test_main();
 
@@ -54,6 +66,20 @@ pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
 	while keyboard::last_char().is_none() {sys::timer::pause(0.01)}
 	clear!();
 	run!("fs mount ata 0 1");
+
+	let dev = device_manager::get_device("ATA/0/1").unwrap();
+	let dev = dev.block_dev().unwrap().clone();
+
+	let mut files = Vec::new();
+	vfs::list(&mut files);
+
+	for meta in files.iter() {
+		println!("File: {:?}", meta);
+	}
+
+
+	
+
 	//unsafe {InodeBitmap::erase_all()};
 	// let file = File::open_or_create("Test.txt");
 	// let mut file = file.unwrap();
@@ -77,6 +103,10 @@ pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
 	
 	//format_ata(0, 1);
 	
+	unsafe {
+		syscall!(calls::SLEEP, 5000);
+	}
+
 	sys::shell::start();
 
 	sys::acpi::shutdown();

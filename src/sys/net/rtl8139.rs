@@ -317,7 +317,7 @@ impl phy::TxToken for TxToken {
 
             debug!("Transmitting {} Bytes...", buf.len());
             let mut _packet= Ipv4Packet::new_unchecked(&buf);
-            debug!("Packet Protocol: {:?}", packet.protocol());
+            debug!("Packet Protocol: {:?}", _packet.protocol());
     
             // 1. Copy the packet to a physically contiguous buffer in memory.
             let res = f(&mut buf);

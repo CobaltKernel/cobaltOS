@@ -51,6 +51,7 @@ pub fn run(command: &str) -> usize {
         "fs" => {cmd::fs::main(&parts)},
         "pci" => {cmd::pci::main(&parts)},
         "net" => {cmd::net::main(&parts)},
+        "syscall" => {cmd::syscall::main(&parts)},
         _ => {
             println!("Unknown Command '{}'", program_name);
             usize::MAX

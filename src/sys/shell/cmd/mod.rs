@@ -4,3 +4,4 @@ pub mod install;
 pub mod fs;
 pub mod pci;
 pub mod net;
+pub mod syscall;

@@ -43,7 +43,7 @@ pub fn mount_device(handle: DeviceHandle) {
     debug!("Mounted Handle With Size Of {} Blocks", handle.sector_count());
     assert!(handle.sector_count() <= DISK_SIZE as u32);
     *HANDLE.lock() = Some(handle);
-    superblock::SuperBlock::mount();
+    //superblock::SuperBlock::mount();
 }
 
 pub fn is_mounted() -> bool {
