@@ -1,3 +1,3 @@
-[submodule "tools"]
-	path = tools
-	url = https://github.com/NPEX42/tools.git
+[submodule "ustar"]
+	path = submodules/ustar
+	url = https://github.com/NPEX42/ustar.git
