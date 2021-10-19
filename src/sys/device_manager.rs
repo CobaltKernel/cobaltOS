@@ -28,6 +28,9 @@ impl Device {
 ///     MEM/B8000/A0000
 ///     PCI/REALTEK/RTL8139
 pub fn get_device(path: &str) -> Option<Device> {
+
+    path.replace(":", "/");
+
     let sections: Vec<&str> = path.split("/").collect();
     match sections[0] {
         "PCI" => build_pci(&sections),
@@ -65,5 +68,5 @@ fn build_ata(id: &Vec<&str>) -> Option<Device> {
 
 #[test_case]
 pub fn test_pci() {
-    assert!(get_device("PCI:REALTEK:RTL8139").is_some());
+    assert!(get_device("PCI/REALTEK/RTL8139").is_some());
 }
