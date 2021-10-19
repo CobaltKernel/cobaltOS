@@ -1,4 +1,6 @@
-use self::calls::SLEEP;
+use crate::print;
+
+use self::calls::{PRINT_BYTE, SLEEP};
 
 pub mod calls;
 
@@ -61,6 +63,19 @@ pub unsafe fn syscall3(n: usize, arg1: usize, arg2: usize, arg3: usize) -> usize
 pub fn dispatch(n: usize, arg1: usize, arg2: usize, arg3: usize) -> usize {
     match n {
         SLEEP => {crate::sys::timer::pause((arg1 as f64) / 1000.0); 0}
+        PRINT_BYTE => {print!("{}", (arg1 as u8) as char); 0},
+        PRINT_STR =>  {
+            unsafe {
+                print!("{}",
+                    core::str::from_utf8_unchecked(
+                        core::slice::from_raw_parts(
+                            arg1 as *const u8, arg2
+                        )
+                    ) 
+                );
+            }
+            0
+        },
         _ => {usize::MAX}
     }
 }

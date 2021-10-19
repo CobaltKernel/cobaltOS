@@ -7,7 +7,9 @@
 #![feature(custom_test_frameworks)]
 #![test_runner(cobalt_os::test_runner)]
 #![reexport_test_harness_main = "test_main"]
+#![feature(llvm_asm)]
 extern crate alloc;
+use alloc::string::String;
 use bootloader::{BootInfo, entry_point};
 use cobalt_os::*;
 use cobalt_os::arch::i386::syscalls::calls;
@@ -20,7 +22,7 @@ use storage::fs::{dev_handle::*};
 use device_manager::Device;
 use alloc::vec::Vec;
 
-use ustar::TarFileSystem;
+use sys::ustar::TarFileSystem;
 entry_point!(kernel_main);
 
 pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
@@ -67,15 +69,22 @@ pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
 	clear!();
 	run!("fs mount ata 0 1");
 
-	let dev = device_manager::get_device("ATA/0/1").unwrap();
-	let dev = dev.block_dev().unwrap().clone();
-
 	let mut files = Vec::new();
 	vfs::list(&mut files);
+
+	println!("Files Found: {}", files.len());
 
 	for meta in files.iter() {
 		println!("File: {:?}", meta);
 	}
+
+	let mut buf = Vec::new();
+
+	vfs::load("root/boot/message.txt", &mut buf);
+
+	println!("{}", String::from_utf8(buf).unwrap());
+
+	
 
 
 	
@@ -104,7 +113,7 @@ pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
 	//format_ata(0, 1);
 	
 	unsafe {
-		syscall!(calls::SLEEP, 5000);
+		//syscall!(calls::SLEEP, 5000);
 	}
 
 	sys::shell::start();
@@ -121,3 +130,14 @@ fn trivial_assertion() {
 
 
 
+
+
+pub unsafe fn userspace_prog_1() {
+    llvm_asm!("\
+        start:
+        mov rax, 0x0
+        mov rdi, 1000
+        int 0x80
+        jmp start
+    ":::: "volatile", "intel");
+}

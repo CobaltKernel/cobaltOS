@@ -1,5 +1,6 @@
 pub mod timer;
 pub mod pit;
+pub mod process;
 pub mod storage;
 pub mod keyboard;
 pub mod vga;
@@ -12,6 +13,7 @@ pub mod pci_details;
 pub mod net;
 pub mod clock;
 pub mod vfs;
+pub mod ustar;
 pub mod device_manager;
 
 use x86_64::instructions::port::*;

@@ -107,6 +107,8 @@ extern "x86-interrupt" fn on_breakpoint(_: InterruptStackFrame) {
 extern "x86-interrupt" fn on_double_fault(
     stack_frame: InterruptStackFrame, _error_code: u64) -> !
 {
+    crate::dump_instructions(stack_frame.instruction_pointer, 128);
+
     panic!("EXCEPTION: DOUBLE FAULT\n{:#?}", stack_frame);
 }
 
@@ -288,3 +290,4 @@ extern "sysv64" fn syscall_handler(_stack_frame: &mut InterruptStackFrame, regs:
 
     send_eoi(15);
 }
+

@@ -12,7 +12,10 @@
 #![reexport_test_harness_main = "test_main"]
 
 extern crate alloc;
+use alloc::string::String;
 use bootloader::BootInfo;
+use iced_x86::{DecoderOptions, Formatter, Instruction, NasmFormatter};
+use x86_64::VirtAddr;
 
 pub mod serial;
 pub mod interrupts;
@@ -117,6 +120,8 @@ fn panic(info: &PanicInfo) -> ! {
     sys::halt();
 }
 
+const HEXBYTES_COLUMN_BYTE_LENGTH: usize = 10;
+
 // our panic handler in test mode
 #[cfg(test)]
 #[panic_handler]
@@ -125,4 +130,39 @@ fn panic(info: &PanicInfo) -> ! {
     serial_println!("Error: {}\n", info);
     exit_qemu(QemuExitCode::Failed);
     sys::halt();
+}
+
+pub fn dump_instructions(ptr: VirtAddr, len: usize) {
+    let bin: &[u8] = unsafe { 
+        core::slice::from_raw_parts(ptr.as_ptr(), len)
+    };
+
+    let mut decoder = iced_x86::Decoder::new(64, bin, DecoderOptions::NONE);
+    decoder.set_ip(ptr.as_u64());
+    let mut formatter = NasmFormatter::new();
+
+    //formatter.options_mut().set_binary_prefix("0b");
+
+    let mut output = String::new();
+
+    let mut instruction = Instruction::default();
+
+    for ins in decoder.iter() {
+        print!("{:016X}", ins.ip());
+
+        let start_index = (instruction.ip() - ptr.as_u64()) as usize;
+        let instr_bytes = &bin[start_index..start_index + instruction.len()];
+        for b in instr_bytes.iter() {
+            print!("{:02X}", b);
+        }
+        if instr_bytes.len() < HEXBYTES_COLUMN_BYTE_LENGTH {
+            for _ in 0..HEXBYTES_COLUMN_BYTE_LENGTH - instr_bytes.len() {
+                print!("  ");
+            }
+        }
+
+        println!(" {}", instruction);
+    }
+
+
 }

@@ -21,17 +21,18 @@ bit_field = "0.10.0"
 acpi = "4.0.0"
 aml = "0.16.0"
 smoltcp = { version = "0.7.5", default-features = false, features = ["alloc", "ethernet", "socket-tcp", "socket-udp", "proto-ipv4", "proto-dhcpv4"] }
-# file_systems = "0.2.0"
 bytes = {version = "1.1.0", default_features = false}
 array-macro = "2.1.0"
-
 serde = { version = "1.0", default-features = false, features = ["derive", "alloc"] }
-# toml =  {version = "0.5.8", default_features = false}
 block_device = "0.1.2"
+object = { version = "0.26.2", default-features = false, features = ["read"] }
 
 
-ustar = {version = "0.1.0", default-features = false, path = "./submodules/ustar"}
-
+[dependencies.iced-x86]
+version = "1.15.0"
+default-features = false
+# See below for all features
+features = ["no_std", "decoder", "nasm", "intel"]
 
 [dependencies.lazy_static]
 version = "1.0"
@@ -46,15 +47,16 @@ breakpoints = []
 [package.metadata.bootimage]
 run-args = [
     "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04",
-    "-m", "128M", 
+    "-m", "1024M", 
     "-serial", "stdio", 
     "-hdb", "drive.img",
     "-netdev", "user,id=network0", 
-    "-device", "rtl8139,netdev=network0,mac=52:54:00:12:34:56"
+    "-device", "rtl8139,netdev=network0,mac=52:54:00:12:34:56",
+    "-s"
     ]
 test-args = [
     "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04",
-    "-m", "128M", 
+    "-m", "1024M", 
     "-serial", "stdio", 
     "-hdb", "drive.img",
     "-netdev", "user,id=network0", 
