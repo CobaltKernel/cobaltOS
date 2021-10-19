@@ -1,3 +1,6 @@
 /target
 **/**.swp
 **/**.img
+
+
+docs/cobalt_os/**

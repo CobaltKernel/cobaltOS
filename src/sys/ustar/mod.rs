@@ -86,6 +86,50 @@ impl<E: Debug> TarFileSystem<E> {
             if index >= self.disk_size {return;}
         }
     }
+
+    pub fn file_exist(&self, path: &str) -> bool {
+        self.find(path).is_some()
+    }
+
+    pub fn delete_file(&self, path: &str) -> bool {
+        if let Some(file) = self.find(path) {
+            self.disk.write(&[0; 512], file.addr() as usize, file.block_length());
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn create_file(&self, path: &str) -> bool {
+        if self.file_exist(path) {return false;};
+        let mut addr = 0;
+        for i in 0..self.disk_size {
+            let mut meta = self.metadata(addr);
+            if meta.file_name().is_empty() {
+                meta.set_file_name(path);
+                self.write_metadata(meta);
+                return true;
+            } else {
+                addr += meta.block_length() as u32;
+            };
+
+            if i >= self.disk_size {return false;}
+
+            
+        } 
+
+        false
+
+    }
+    
+    fn write_metadata(&self, meta: Metadata) {
+        let mut buffer: [u8; 512] = [0; 512];
+        for i in 0..100 {
+            buffer[i] = meta.file_name().as_bytes()[i];
+        }
+
+        self.disk.write(&buffer, meta.addr() as usize, 1);
+    }
 }
 
 pub struct RamDisk {

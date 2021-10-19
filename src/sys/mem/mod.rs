@@ -26,7 +26,7 @@ pub const MB: usize = 1024 * KB;
 pub const GB: usize = 1024 * MB;
 pub const TB: usize = 1024 * GB;
 
-pub const HEAP_SIZE: usize = 127 * MB;
+pub const HEAP_SIZE: usize = 100 * KB;
 pub const HEAP_START: u64 = 0x_4444_4444_0000;
 pub const HEAP_END: u64 = HEAP_START + HEAP_SIZE as u64 + 1u64;
 

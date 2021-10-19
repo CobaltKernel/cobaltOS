@@ -72,19 +72,16 @@ pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
 	let mut files = Vec::new();
 	vfs::list(&mut files);
 
-	println!("Files Found: {}", files.len());
 
-	for meta in files.iter() {
-		println!("File: {:?}", meta);
-	}
 
 	let mut buf = Vec::new();
-
 	vfs::load("root/boot/message.txt", &mut buf);
 
-	println!("{}", String::from_utf8(buf).unwrap());
+	let msg =  String::from_utf8(buf).unwrap();
 
-	
+
+	print_at!(40 - (msg.len() / 2), 12, &msg);
+	print!("\r");	
 
 
 	

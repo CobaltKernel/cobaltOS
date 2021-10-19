@@ -138,6 +138,10 @@ impl Metadata {
     pub fn size(&self) -> usize {
         self.size as usize
     }
+
+    pub fn set_file_name(&mut self, name: &str) {
+        self.file_name = String::from(name);
+    }
     
 }
 
