@@ -1,6 +1,8 @@
-use crate::print;
+use core::ops::RangeInclusive;
 
-use self::calls::{PRINT_BYTE, SLEEP};
+use crate::{print, serial_print};
+
+use self::calls::{PRINT_BYTE, PRINT_STR, SLEEP};
 
 pub mod calls;
 
@@ -60,7 +62,7 @@ pub unsafe fn syscall3(n: usize, arg1: usize, arg2: usize, arg3: usize) -> usize
 }
 
 
-pub fn dispatch(n: usize, arg1: usize, arg2: usize, arg3: usize) -> usize {
+pub fn dispatch(n: usize, arg1: usize, arg2: usize, _arg3: usize) -> usize {
     match n {
         SLEEP => {crate::sys::timer::pause((arg1 as f64) / 1000.0); 0}
         PRINT_BYTE => {print!("{}", (arg1 as u8) as char); 0},
@@ -77,5 +79,25 @@ pub fn dispatch(n: usize, arg1: usize, arg2: usize, arg3: usize) -> usize {
             0
         },
         _ => {usize::MAX}
+    }
+}
+
+
+#[test_case]
+pub fn test_syscalls() {
+    const PAUSE_TIME: usize = 500;
+    const ALLOWED_DEVIATION: usize = (PAUSE_TIME as f32 * 0.01) as usize;
+
+    const ALLOWED_RANGE: RangeInclusive<usize> = PAUSE_TIME..=(PAUSE_TIME + ALLOWED_DEVIATION);
+    unsafe {
+        for _ in 0..100 {
+            let time = crate::sys::timer::uptime_millis();
+            syscall!(SLEEP, PAUSE_TIME);
+            let elapsed = crate::sys::timer::uptime_millis() - time;
+            // Allow For A 100ms Deviation
+            assert!(ALLOWED_RANGE.contains(&(elapsed as usize)));
+
+            serial_print!("Deviation: {}ms", elapsed as usize - PAUSE_TIME);
+        }
     }
 }

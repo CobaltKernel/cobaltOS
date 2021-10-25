@@ -23,6 +23,8 @@ use device_manager::Device;
 use alloc::vec::Vec;
 
 use sys::ustar::TarFileSystem;
+use x86_64::VirtAddr;
+use x86_64::structures::paging::PageTableFlags;
 entry_point!(kernel_main);
 
 pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
@@ -61,7 +63,7 @@ pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
 
 	
 
-
+	mem::alloc_page(VirtAddr::new(0x1_FFFF_FFFF), PageTableFlags::PRESENT | PageTableFlags::WRITABLE);
 
 
 	print!("Press Any Key To Continue!");
@@ -85,33 +87,6 @@ pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
 
 
 	
-
-	//unsafe {InodeBitmap::erase_all()};
-	// let file = File::open_or_create("Test.txt");
-	// let mut file = file.unwrap();
-	// println!("{:?}", file);
-	// println!("File Data: {:?}",file.data());
-
-	// file.append(0xAA);
-
-	// file.close();
-
-
-	
-
-	//log!("{:?}", file);
-
-
-	//InodeBlocks::debug();
-
-
-	
-	
-	//format_ata(0, 1);
-	
-	unsafe {
-		//syscall!(calls::SLEEP, 5000);
-	}
 
 	sys::shell::start();
 
