@@ -10,6 +10,8 @@ install_prereqs:
 
 clean:
 	cargo clean
+	rm drive.img
+	tar -cf drive.img root
 	
 
 build:
