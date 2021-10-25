@@ -10,6 +10,7 @@ install_prereqs:
 
 clean:
 	cargo clean
+	tar -cf drive.img root
 	
 
 build:
@@ -47,6 +48,3 @@ release:
 	git add .
 	git commit --amend -m "Release"
 	cargo release
-
-doc:
-	cargo doc --open --target-dir docs/cobalt_os --lib
