@@ -21,7 +21,9 @@ jobs:
         cargo install bootimage
         rustup component add llvm-tools-preview
         rustup component add rust-src
+        sudo apt-get update
         sudo apt install qemu-system
+        make clean
     - name: Build
       run: make build
 
@@ -35,7 +37,8 @@ jobs:
         cargo install bootimage
         rustup component add llvm-tools-preview
         rustup component add rust-src
+        sudo apt-get update
         sudo apt install qemu-system
-        qemu-img create drive.img 128M
+        make clean
     - name: Test
       run: make test
