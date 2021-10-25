@@ -1,4 +1,4 @@
-name: Rust
+name: Test
 
 on:
   push:
@@ -10,23 +10,6 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v2
-    - name: Install
-      run: |
-        cargo install bootimage
-        rustup component add llvm-tools-preview
-        rustup component add rust-src
-        sudo apt-get update
-        sudo apt install qemu-system
-        make clean
-    - name: Build
-      run: make build
-
   test:
 
     runs-on: ubuntu-latest
