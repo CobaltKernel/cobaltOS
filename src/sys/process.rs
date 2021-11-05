@@ -1,7 +1,10 @@
+use core::sync::atomic::AtomicU16;
 use core::sync::atomic::AtomicU64;
 use core::sync::atomic::Ordering;
 use crate::arch::i386::interrupts::gdt::GDT;
 use crate::sys;
+use alloc::vec;
+use array_macro::array;
 use object::Object;
 use object::ObjectSegment;
 use x86_64::structures::paging::FrameAllocator;
@@ -10,10 +13,64 @@ use x86_64::structures::paging::Page;
 use x86_64::{VirtAddr, structures::paging::PageTableFlags};
 
 use super::mem::frame_alloc;
+use super::storage::fs::dev_handle::BlockDeviceIO;
+use super::storage::fs::dev_handle::DeviceHandle;
 
 static STACK_ADDR: AtomicU64 = AtomicU64::new(0x200_0000);
 static CODE_ADDR: AtomicU64 = AtomicU64::new(0x100_0000);
+static NEXT_PID: AtomicU16 = AtomicU16::new(0);
 const PAGE_SIZE: u64 = 4 * 1024;
+const MAX_DEVICE_HANDLES: usize = 256;
+
+/// Represents A Single Process
+pub struct Process<'a> {
+    process_id: u16,
+    device_handles: [Option<&'a DeviceHandle>; MAX_DEVICE_HANDLES],
+}
+
+impl<'a> Process<'a> {
+    pub fn create() -> Process<'a> {
+        Process { 
+            process_id: NEXT_PID.fetch_add(1, Ordering::SeqCst), 
+            device_handles: [None; MAX_DEVICE_HANDLES]
+        }
+    }
+
+    fn get_handle(&self, handle: u16) -> Option<&DeviceHandle> {
+        self.device_handles[handle as usize]
+    }
+
+    pub fn open_handle(&mut self, dev: DeviceHandle) -> Option<u16> {
+        for idx in 0..MAX_DEVICE_HANDLES {
+            if self.device_handles[idx].is_none() {
+                return Some(idx as u16);
+            };
+        }
+        return None;
+    }
+
+    pub fn close_handle(&mut self, handle: u16) {
+        self.device_handles[handle as usize] = None;
+    }
+
+    pub fn read(&mut self, handle: u16, block: u32, buffer: &mut [u8]) -> usize {
+        if let Some(dev) = self.get_handle(handle) {
+            if let Some(disk) = dev.as_ata_dev() {
+                let len = buffer.len() / 512;
+                
+                let mut temp = vec![0; len];
+                disk.read(block, buffer);
+                return buffer.len();
+            };
+            return 0;
+        };
+        return 0;
+    }
+}
+
+
+
+
 
 pub fn exec(bin: &[u8]) {
     let mut mapper = unsafe {

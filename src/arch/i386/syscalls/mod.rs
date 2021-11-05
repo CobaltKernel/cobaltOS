@@ -12,8 +12,7 @@ macro_rules! syscall {
         $crate::arch::i386::syscalls::syscall0(
             $n as usize));
     ($n:expr, $a1:expr) => (
-        $crate::arch::i386::syscalls::syscall1(
-            $n as usize, $a1 as usize));
+        $crate::arch::i386::syscalls::syscall1($n as usize, $a1 as usize));
     ($n:expr, $a1:expr, $a2:expr) => (
         $crate::arch::i386::syscalls::syscall2(
             $n as usize, $a1 as usize, $a2 as usize));
@@ -90,7 +89,7 @@ pub fn test_syscalls() {
 
     const ALLOWED_RANGE: RangeInclusive<usize> = PAUSE_TIME..=(PAUSE_TIME + ALLOWED_DEVIATION);
     unsafe {
-        for _ in 0..100 {
+        for _ in 0..10 {
             let time = crate::sys::timer::uptime_millis();
             syscall!(SLEEP, PAUSE_TIME);
             let elapsed = crate::sys::timer::uptime_millis() - time;

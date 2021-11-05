@@ -108,6 +108,7 @@ dependencies = [
  "block_device",
  "bootloader",
  "bytes",
+ "fat32",
  "iced-x86",
  "lazy_static",
  "linked_list_allocator",
@@ -120,6 +121,15 @@ dependencies = [
  "uart_16550",
  "volatile 0.2.7",
  "x86_64",
+]
+
+[[package]]
+name = "fat32"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "04ade4c8dc650037c07d4d1d3329851b8bdbab0da8d2b83ac5d7114174702c17"
+dependencies = [
+ "block_device",
 ]
 
 [[package]]

@@ -1,0 +1,11 @@
+==== HIGH PRIORITY ====
+
+[ ] - Refactor Architecture Module - Structure Not Needed Yet
+[ ] - Add TAR File IO System Call
+
+==== MEDIUM PRIORITY ====
+
+==== LOW PRIORITY ====
+
+==== BACKBURNER ====
+

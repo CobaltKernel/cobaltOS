@@ -1,3 +1,5 @@
+//! Handles Interacting With the GDT & Setting Segment Selectors
+
 use x86_64::VirtAddr;
 use x86_64::structures::tss::TaskStateSegment;
 use x86_64::structures::gdt::{GlobalDescriptorTable, Descriptor};
@@ -9,9 +11,11 @@ use x86_64::structures::gdt::SegmentSelector;
 use x86_64::instructions::segmentation::set_cs;
 use x86_64::instructions::tables::load_tss;
 
+/// The IST Index For The Double Fault Handler Stack
 pub const DOUBLE_FAULT_IST_INDEX: u16 = 0;
 
 lazy_static! {
+	#[allow(missing_docs)]
     static ref TSS: TaskStateSegment = {
         let mut tss = TaskStateSegment::new();
         tss.interrupt_stack_table[DOUBLE_FAULT_IST_INDEX as usize] = {
@@ -25,6 +29,7 @@ lazy_static! {
         tss
     };
 
+	#[allow(missing_docs)]
 	pub static ref GDT: (GlobalDescriptorTable, Selectors) = {
 		let mut gdt = GlobalDescriptorTable::new();
 		let code_selector = gdt.add_entry(Descriptor::kernel_code_segment());
@@ -36,14 +41,23 @@ lazy_static! {
 	};
 }
 
+#[allow(dead_code)]
+/// Keeps Track Of The Current Segment Selectors
 pub struct Selectors {
+	/// Kernel Code Selector
 	code_selector: SegmentSelector,
+	/// TSS Selector
 	tss_selector:  SegmentSelector,
+	/// Kernel Data Selector
     data: SegmentSelector,
+
+	/// Usermode Code Selector
     pub user_code: SegmentSelector,
+	/// Usermode Data Selector
     pub user_data: SegmentSelector,
 }
 
+/// Setup & Load The GDT, Set the CS register & load the TSS
 pub fn init() {
 	GDT.0.load();
 	unsafe {

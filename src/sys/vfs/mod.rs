@@ -1,6 +1,8 @@
 
 pub mod filesystem;
 
+pub mod fat;
+
 use crate::{println, sys::ustar::*};
 use metadata::*;
 use lazy_static::lazy_static;

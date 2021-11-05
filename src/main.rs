@@ -23,6 +23,7 @@ use device_manager::Device;
 use alloc::vec::Vec;
 
 use sys::ustar::TarFileSystem;
+use sys::vfs::fat::read_file;
 use x86_64::VirtAddr;
 use x86_64::structures::paging::PageTableFlags;
 entry_point!(kernel_main);
@@ -65,25 +66,28 @@ pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
 
 	mem::alloc_page(VirtAddr::new(0x1_FFFF_FFFF), PageTableFlags::PRESENT | PageTableFlags::WRITABLE);
 
+	//read_file("");
+
+	
 
 	print!("Press Any Key To Continue!");
 	while keyboard::last_char().is_none() {sys::timer::pause(0.01)}
 	clear!();
 	run!("fs mount ata 0 1");
 
-	let mut files = Vec::new();
-	vfs::list(&mut files);
+	//let mut files = Vec::new();
+	//vfs::list(&mut files);
 
 
 
-	let mut buf = Vec::new();
-	vfs::load("root/boot/message.txt", &mut buf);
+	//let mut buf = Vec::new();
+	//vfs::load("root/boot/message.txt", &mut buf);
 
-	let msg =  String::from_utf8(buf).unwrap();
+	//let msg =  String::from_utf8(buf).unwrap();
 
 
-	print_at!(40 - (msg.len() / 2), 12, &msg);
-	print!("\r");	
+	//print_at!(40 - (msg.len() / 2), 12, &msg);
+	//print!("\r");	
 
 
 	

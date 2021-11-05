@@ -22,7 +22,7 @@ impl Device {
     }
 }
 
-/// Converts A Path Formatted in
+/// Converts A Path Formatted in <Device Type>/ID
 /// Example:
 ///     ATA/0/0
 ///     MEM/B8000/A0000
@@ -70,3 +70,4 @@ fn build_ata(id: &Vec<&str>) -> Option<Device> {
 pub fn test_pci() {
     assert!(get_device("PCI/REALTEK/RTL8139").is_some());
 }
+

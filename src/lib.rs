@@ -1,3 +1,5 @@
+//! The Main CobaltOS Library
+
 #![no_std]
 #![cfg_attr(test, no_main)]
 #![feature(abi_x86_interrupt)]
@@ -11,10 +13,11 @@
 #![test_runner(crate::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
+//#![warn(missing_docs)]
+
 extern crate alloc;
 use alloc::string::String;
-use bootloader::BootInfo;
-use iced_x86::{DecoderOptions, Formatter, Instruction, NasmFormatter};
+use iced_x86::{DecoderOptions, Instruction, NasmFormatter};
 use x86_64::VirtAddr;
 
 pub mod serial;
@@ -22,6 +25,9 @@ pub mod interrupts;
 pub mod macros;
 pub mod arch;
 pub mod sys;
+pub mod device;
+
+pub mod api;
 
 
 use core::panic::PanicInfo;
@@ -59,7 +65,7 @@ pub fn test_panic_handler(info: &PanicInfo) -> ! {
 /// Entry point for `cargo test`
 #[cfg(test)]
 #[no_mangle]
-pub extern "C" fn _start(boot_info: &'static BootInfo) -> ! {
+pub extern "C" fn _start(boot_info: &'static bootloader::BootInfo) -> ! {
     use core::mem;
 
     use bootloader::BootInfo;
@@ -166,3 +172,11 @@ pub fn dump_instructions(ptr: VirtAddr, len: usize) {
 
 
 }
+
+
+
+
+
+
+
+pub type KResult<T> = core::result::Result<T, &'static str>;

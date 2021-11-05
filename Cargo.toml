@@ -27,6 +27,11 @@ serde = { version = "1.0", default-features = false, features = ["derive", "allo
 block_device = "0.1.2"
 object = { version = "0.26.2", default-features = false, features = ["read"] }
 
+[dependencies.fat32]
+version = "0.2.0"
+default_features = false
+features = ["512"]
+
 
 [dependencies.iced-x86]
 version = "1.15.0"
@@ -49,7 +54,8 @@ run-args = [
     "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04",
     "-m", "1024M", 
     "-serial", "stdio", 
-    "-hdb", "drive.img",
+    "-hdc", "drive.img",
+    #"-hdb", "drive.img",
     "-netdev", "user,id=network0", 
     "-device", "rtl8139,netdev=network0,mac=52:54:00:12:34:56",
     "-s"

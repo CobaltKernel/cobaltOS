@@ -21,6 +21,15 @@ pub enum DeviceHandle {
     ResBlockDevice(ResDevice)   
 }
 
+impl DeviceHandle {
+    pub fn as_ata_dev(&self) -> Option<AtaDevice> {
+        match self {
+            &Self::AtaBlockDevice(dev) => return Some(dev),
+            _ => return None,
+        }
+    } 
+}
+
 impl BlockDeviceIO for DeviceHandle {
     fn read(&self, addr: BlockAddr, buf: &mut [u8]) {
         match self {
@@ -126,7 +135,7 @@ impl BlockDevice for DeviceHandle {
         let mut blocks: Vec<[u8; 512]> = vec![[0; 512]; block_count];
         for i in addr..addr+block_count {
             match self {
-                Self::AtaBlockDevice(dev) => dev.read(i as u32, &mut blocks[i - addr]),
+                Self::AtaBlockDevice(dev) => BlockDeviceIO::read(dev, i as u32, &mut blocks[i - addr]),
                 _ => unimplemented!()
             }
         }
@@ -142,3 +151,4 @@ impl BlockDevice for DeviceHandle {
         todo!();
     }
 }
+
