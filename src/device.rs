@@ -5,14 +5,25 @@
 use alloc::vec::Vec;
 use uart_16550::SerialPort;
 
-use crate::{KResult, sys::ata};
+use crate::{KResult, sys::{ata}};
 
 pub struct Device;
 pub struct Disk(u8, u8);
 
 pub enum DeviceHandle {
     Serial(SerialPort),
-    Null(NullDevice)
+    Null(NullDevice),
+    Ata(Disk)
+}
+
+impl DeviceHandle {
+    pub fn as_block_device(&self) -> Option<&dyn BlockDevice> {
+        match self {
+            Self::Ata(dev) => Some(dev),
+            Self::Null(dev) => Some(dev),
+            Self::Serial(_) => None
+        }
+    }
 }
 
 impl CharDevice for DeviceHandle {
@@ -20,6 +31,7 @@ impl CharDevice for DeviceHandle {
         match self {
             Self::Null(dev) => dev.read_u8(addr),
             Self::Serial(dev) => dev.read_u8(addr),
+            Self::Ata(_) => None,
         }
     }
 
@@ -27,6 +39,7 @@ impl CharDevice for DeviceHandle {
         match self {
             Self::Null(dev) => dev.read_u16(addr),
             Self::Serial(dev) => dev.read_u16(addr),
+            Self::Ata(_) => None,
         }
     }
 
@@ -34,6 +47,7 @@ impl CharDevice for DeviceHandle {
         match self {
             Self::Null(dev) => dev.read_u32(addr),
             Self::Serial(dev) => dev.read_u32(addr),
+            Self::Ata(_) => None,
         }
     }
 
@@ -41,6 +55,7 @@ impl CharDevice for DeviceHandle {
         match self {
             Self::Null(dev) => dev.read_u64(addr),
             Self::Serial(dev) => dev.read_u64(addr),
+            Self::Ata(_) => None,
         }
     }
 
@@ -48,6 +63,7 @@ impl CharDevice for DeviceHandle {
         match self {
             Self::Null(dev) => dev.read_u128(addr),
             Self::Serial(dev) => dev.read_u128(addr),
+            Self::Ata(_) => None,
         }
     }
 
@@ -55,6 +71,7 @@ impl CharDevice for DeviceHandle {
         match self {
             Self::Null(dev) => dev.write_u8(addr, value),
             Self::Serial(dev) => dev.write_u8(addr, value),
+            Self::Ata(_) => Err("Cannot Use An Ata Device As A Character Device"),
         }
     }
 
@@ -62,6 +79,7 @@ impl CharDevice for DeviceHandle {
         match self {
             Self::Null(dev) => dev.size(),
             Self::Serial(dev) => dev.size(),
+            Self::Ata(_) => None,
         }
     }
 
@@ -69,6 +87,7 @@ impl CharDevice for DeviceHandle {
         match self {
             Self::Null(dev) => dev.slice(),
             Self::Serial(dev) => dev.slice(),
+            Self::Ata(_) => None,
         }
     }
 
@@ -76,6 +95,33 @@ impl CharDevice for DeviceHandle {
         match self {
             Self::Null(dev) => dev.slice_mut(),
             Self::Serial(dev) => dev.slice_mut(),
+            Self::Ata(_) => None,
+        }
+    }
+}
+
+impl BlockDevice for DeviceHandle {
+    fn read(&self, addr: usize,buf: &mut [u8]) -> KResult<()> {
+        match self {
+            DeviceHandle::Null(_) => Ok(()),
+            &DeviceHandle::Serial(_) => Err("Serial Line Is Not A Block Device"),
+            DeviceHandle::Ata(dev) => dev.read(addr, buf),
+        }
+    }
+
+    fn write(&mut self, addr: usize, buf: &[u8]) -> KResult<()> {
+        match self {
+            DeviceHandle::Null(_) => Ok(()),
+            DeviceHandle::Serial(_) => Err("Serial Line Is Not A Block Device"),
+            DeviceHandle::Ata(dev) => dev.write(addr, buf),
+        }
+    }
+
+    fn block_count(&self) -> Option<usize> {
+        match self {
+            DeviceHandle::Null(_) => None,
+            DeviceHandle::Serial(_) => None,
+            DeviceHandle::Ata(dev) => dev.block_count(),
         }
     }
 }
@@ -94,12 +140,17 @@ impl Device {
             _ => Err("Not A Valid Char Device Type"),
         }
     }
-    pub fn open_block_dev(path: &str) -> KResult<impl BlockDevice> {
+    pub fn open_block_dev(path: &str) -> KResult<DeviceHandle> {
         let sections = path.split("/").collect::<Vec<&str>>();
         if sections[0] != "dev"  { return Err("Not A Device File") }
         if sections.len() == 1   { return Err("Must Point To A Device Descriptor (ie dev/ata/0/0, dev/mem)") }
         match sections[1] {
-            "null" => Ok(NullDevice),
+            "null" => Ok(DeviceHandle::Null(NullDevice)),
+            "ata" => {
+                    let bus: u8 = sections[2].parse().expect("Expected A Byte");
+                    let disk: u8 = sections[3].parse().expect("Expected A Byte");
+                    Ok(DeviceHandle::Ata(Disk(bus, disk)))
+                },
             _ => Err("Not A Valid Block Device Type"),
         }
     }
@@ -280,9 +331,19 @@ fn tty_device() {
     dev.write_u8(0, b'A').expect("");
 }
 
+#[test_case]
+fn ata_device() {
+    let dev = Device::open_block_dev("dev/ata/0/0").expect("");
+    if let Some(dev) = dev.as_block_device() {
+        crate::serial_print!("Block Count: {:?} - ", dev.block_count());
+        crate::serial_print!("Block Size: {:?} - ", dev.block_size());
+    }
+}
+
+
 /// Should Pass, Writes ASCII A (65) to COMM
 #[test_case]
-fn tty_device() {
+fn comm_device() {
     let mut dev = Device::open_char_dev("dev/comm").expect("");
     dev.write_u8(0, b'A').expect("");
 }
