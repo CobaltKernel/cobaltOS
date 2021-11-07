@@ -69,3 +69,11 @@ macro_rules! breakpoint {
     () => {
     };
 }
+
+
+#[macro_export]
+macro_rules! kmalloc { 
+    ($t:ty) => {
+        
+    };
+}

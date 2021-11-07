@@ -1,8 +1,29 @@
 use bootloader::bootinfo::{MemoryMap, MemoryRegionType};
-use x86_64::{PhysAddr, structures::paging::{FrameAllocator, PhysFrame, Size4KiB}};
+use x86_64::{PhysAddr, structures::paging::{FrameAllocator, Page, PhysFrame, Size4KiB}};
+use lazy_static::lazy_static;
+use spin::Mutex;
+
+
 
 pub const PAGE_SIZE: usize = 4096;
 
+lazy_static! {
+    pub static ref FRAME_ALLOCATOR: Mutex<Option<BootFrameAllocator>> = Mutex::new(None);
+}
+
+pub fn mount_frame_allocator(allocator: BootFrameAllocator) {
+    *FRAME_ALLOCATOR.lock() = Some(allocator);
+}
+
+pub fn allocate_frame() -> Option<PhysFrame> {
+    if let Some(mut allocator) = *FRAME_ALLOCATOR.lock() {
+        allocator.allocate_frame()
+    } else {
+        None
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
 pub struct BootFrameAllocator {
     memory_map: &'static MemoryMap,
     next_frame: usize,
@@ -86,6 +107,7 @@ unsafe impl FrameAllocator<Size4KiB> for BootFrameAllocator {
         frame
     }
 }
+
 
 
 

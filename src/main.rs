@@ -7,7 +7,9 @@
 #![feature(custom_test_frameworks)]
 #![test_runner(cobalt_os::test_runner)]
 #![reexport_test_harness_main = "test_main"]
+#![feature(llvm_asm)]
 extern crate alloc;
+use alloc::string::String;
 use bootloader::{BootInfo, entry_point};
 use cobalt_os::*;
 use cobalt_os::arch::i386::syscalls::calls;
@@ -20,7 +22,10 @@ use storage::fs::{dev_handle::*};
 use device_manager::Device;
 use alloc::vec::Vec;
 
-use ustar::TarFileSystem;
+use sys::ustar::TarFileSystem;
+use sys::vfs::fat::read_file;
+use x86_64::VirtAddr;
+use x86_64::structures::paging::PageTableFlags;
 entry_point!(kernel_main);
 
 pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
@@ -59,53 +64,33 @@ pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
 
 	
 
+	mem::alloc_page(VirtAddr::new(0x1_FFFF_FFFF), PageTableFlags::PRESENT | PageTableFlags::WRITABLE);
 
+	//read_file("");
 
+	
 
 	print!("Press Any Key To Continue!");
 	while keyboard::last_char().is_none() {sys::timer::pause(0.01)}
 	clear!();
 	run!("fs mount ata 0 1");
 
-	let dev = device_manager::get_device("ATA/0/1").unwrap();
-	let dev = dev.block_dev().unwrap().clone();
-
-	let mut files = Vec::new();
-	vfs::list(&mut files);
-
-	for meta in files.iter() {
-		println!("File: {:?}", meta);
-	}
+	//let mut files = Vec::new();
+	//vfs::list(&mut files);
 
 
-	
 
-	//unsafe {InodeBitmap::erase_all()};
-	// let file = File::open_or_create("Test.txt");
-	// let mut file = file.unwrap();
-	// println!("{:?}", file);
-	// println!("File Data: {:?}",file.data());
+	//let mut buf = Vec::new();
+	//vfs::load("root/boot/message.txt", &mut buf);
 
-	// file.append(0xAA);
+	//let msg =  String::from_utf8(buf).unwrap();
 
-	// file.close();
+
+	//print_at!(40 - (msg.len() / 2), 12, &msg);
+	//print!("\r");	
 
 
 	
-
-	//log!("{:?}", file);
-
-
-	//InodeBlocks::debug();
-
-
-	
-	
-	//format_ata(0, 1);
-	
-	unsafe {
-		syscall!(calls::SLEEP, 5000);
-	}
 
 	sys::shell::start();
 
@@ -121,3 +106,14 @@ fn trivial_assertion() {
 
 
 
+
+
+pub unsafe fn userspace_prog_1() {
+    llvm_asm!("\
+        start:
+        mov rax, 0x0
+        mov rdi, 1000
+        int 0x80
+        jmp start
+    ":::: "volatile", "intel");
+}

@@ -7,6 +7,7 @@ use crate::run;
 mod cmd;
 
 use super::keyboard;
+use super::ustar::metadata::Metadata;
 
 pub type ShellProgram = fn(&Vec<&str>) -> usize;
 
@@ -52,6 +53,7 @@ pub fn run(command: &str) -> usize {
         "pci" => {cmd::pci::main(&parts)},
         "net" => {cmd::net::main(&parts)},
         "syscall" => {cmd::syscall::main(&parts)},
+        "ls" | "l" => {ls(&parts)}
         _ => {
             println!("Unknown Command '{}'", program_name);
             usize::MAX
@@ -169,6 +171,22 @@ fn test_exit(_args: &Vec<&str>) -> usize {
         }
     };
     return 0;
+}
+
+fn ls(_args: &Vec<&str>) -> usize {
+    let mut files: Vec<Metadata> = Vec::new();
+    sys::vfs::list(&mut files);
+    let mut max_width = 0;
+    for m in files.iter() {
+        max_width = max_width.max(m.file_name().len());
+    }
+
+    for (index, meta_data) in files.iter().enumerate() {
+        if !meta_data.file_name().is_empty() {
+            println!("{:02} | {:width$} | {:05}",index,meta_data.file_name(), meta_data.size(), width=max_width);
+        }
+    } 
+    0
 }
 
 

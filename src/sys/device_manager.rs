@@ -1,5 +1,4 @@
 use alloc::vec::Vec;
-
 use super::{pci::{*, self}, pci_details, storage::fs::dev_handle::{AtaDevice, DeviceHandle, MemDevice}};
 
 pub enum Device {
@@ -23,12 +22,15 @@ impl Device {
     }
 }
 
-/// Converts A Path Formatted in <ATA|MEM|PCI>:ID
+/// Converts A Path Formatted in <Device Type>/ID
 /// Example:
-///     ATA:0:0
-///     MEM
-///     PCI:REALTEK:RTL8139
+///     ATA/0/0
+///     MEM/B8000/A0000
+///     PCI/REALTEK/RTL8139
 pub fn get_device(path: &str) -> Option<Device> {
+
+    path.replace(":", "/");
+
     let sections: Vec<&str> = path.split("/").collect();
     match sections[0] {
         "PCI" => build_pci(&sections),
@@ -66,5 +68,6 @@ fn build_ata(id: &Vec<&str>) -> Option<Device> {
 
 #[test_case]
 pub fn test_pci() {
-    assert!(get_device("PCI:REALTEK:RTL8139").is_some());
+    assert!(get_device("PCI/REALTEK/RTL8139").is_some());
 }
+

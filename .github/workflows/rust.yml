@@ -1,19 +1,16 @@
-name: Rust
+name: Build
 
 on:
   push:
-    branches: [ trunk ]
   pull_request:
-    branches: [ production, trunk ]
+    branches: [ trunk ]
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
     - name: Install
@@ -21,21 +18,8 @@ jobs:
         cargo install bootimage
         rustup component add llvm-tools-preview
         rustup component add rust-src
+        sudo apt-get update
         sudo apt install qemu-system
+        make clean
     - name: Build
       run: make build
-
-  test:
-
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Install
-      run: |
-        cargo install bootimage
-        rustup component add llvm-tools-preview
-        rustup component add rust-src
-        sudo apt install qemu-system
-        qemu-img create drive.img 128M
-    - name: Test
-      run: make test

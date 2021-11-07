@@ -1,3 +1,5 @@
+//! The Main CobaltOS Library
+
 #![no_std]
 #![cfg_attr(test, no_main)]
 #![feature(abi_x86_interrupt)]
@@ -11,14 +13,21 @@
 #![test_runner(crate::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
+//#![warn(missing_docs)]
+
 extern crate alloc;
-use bootloader::BootInfo;
+use alloc::string::String;
+use iced_x86::{DecoderOptions, Instruction, NasmFormatter};
+use x86_64::VirtAddr;
 
 pub mod serial;
 pub mod interrupts;
 pub mod macros;
 pub mod arch;
 pub mod sys;
+pub mod device;
+
+pub mod api;
 
 
 use core::panic::PanicInfo;
@@ -56,7 +65,7 @@ pub fn test_panic_handler(info: &PanicInfo) -> ! {
 /// Entry point for `cargo test`
 #[cfg(test)]
 #[no_mangle]
-pub extern "C" fn _start(boot_info: &'static BootInfo) -> ! {
+pub extern "C" fn _start(boot_info: &'static bootloader::BootInfo) -> ! {
     use core::mem;
 
     use bootloader::BootInfo;
@@ -117,6 +126,8 @@ fn panic(info: &PanicInfo) -> ! {
     sys::halt();
 }
 
+const HEXBYTES_COLUMN_BYTE_LENGTH: usize = 10;
+
 // our panic handler in test mode
 #[cfg(test)]
 #[panic_handler]
@@ -126,3 +137,46 @@ fn panic(info: &PanicInfo) -> ! {
     exit_qemu(QemuExitCode::Failed);
     sys::halt();
 }
+
+pub fn dump_instructions(ptr: VirtAddr, len: usize) {
+    let bin: &[u8] = unsafe { 
+        core::slice::from_raw_parts(ptr.as_ptr(), len)
+    };
+
+    let mut decoder = iced_x86::Decoder::new(64, bin, DecoderOptions::NONE);
+    decoder.set_ip(ptr.as_u64());
+    let mut formatter = NasmFormatter::new();
+
+    //formatter.options_mut().set_binary_prefix("0b");
+
+    let mut output = String::new();
+
+    let mut instruction = Instruction::default();
+
+    for ins in decoder.iter() {
+        print!("{:016X}", ins.ip());
+
+        let start_index = (instruction.ip() - ptr.as_u64()) as usize;
+        let instr_bytes = &bin[start_index..start_index + instruction.len()];
+        for b in instr_bytes.iter() {
+            print!("{:02X}", b);
+        }
+        if instr_bytes.len() < HEXBYTES_COLUMN_BYTE_LENGTH {
+            for _ in 0..HEXBYTES_COLUMN_BYTE_LENGTH - instr_bytes.len() {
+                print!("  ");
+            }
+        }
+
+        println!(" {}", instruction);
+    }
+
+
+}
+
+
+
+
+
+
+
+pub type KResult<T> = core::result::Result<T, &'static str>;

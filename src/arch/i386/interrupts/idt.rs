@@ -1,7 +1,8 @@
+//! Handles Interacting With the IDT
 
 use spin::Mutex;
 use x86_64::{instructions::{interrupts, port::Port}, structures::idt::{InterruptStackFrame, InterruptDescriptorTable, PageFaultErrorCode}};
-use crate::{arch::i386::syscalls, debug, inb, println, serial, serial_print, serial_println, sys::{self, keyboard}};
+use crate::{arch::i386::syscalls, debug, inb, println, serial, serial_print, sys::{self, keyboard}};
 use super::{gdt, pics::{PIC_1_OFFSET, send_eoi}};
 use super::pics;
 
@@ -14,6 +15,7 @@ const PIC2: u16 = 0xA1;
 
 #[derive(Debug, Clone, Copy)]
 #[repr(u8)]
+#[allow(missing_docs)]
 pub enum InterruptIndex {
     Timer = PIC_1_OFFSET,
     Keyboard,
@@ -66,7 +68,7 @@ impl InterruptIndex {
 }
 
 lazy_static! {
-
+    #[allow(missing_docs)]
     pub static ref IRQ_HANDLERS: Mutex<[fn(); u8::MAX as usize]> = Mutex::new([default_irq_handler; u8::MAX as usize]);
     static ref IDT: InterruptDescriptorTable = {
         let mut idt = InterruptDescriptorTable::new();
@@ -94,7 +96,7 @@ lazy_static! {
     };
 }
 
-
+/// Load The IDT
 pub fn init() {
 	IDT.load();
 }
@@ -107,6 +109,8 @@ extern "x86-interrupt" fn on_breakpoint(_: InterruptStackFrame) {
 extern "x86-interrupt" fn on_double_fault(
     stack_frame: InterruptStackFrame, _error_code: u64) -> !
 {
+    crate::dump_instructions(stack_frame.instruction_pointer, 128);
+
     panic!("EXCEPTION: DOUBLE FAULT\n{:#?}", stack_frame);
 }
 
@@ -179,6 +183,7 @@ fn default_irq_handler() {
 }
 
 
+/// Set The IRQ's Handler.
 pub fn set_irq_handler(irq: u8, handler: fn()) {
     interrupts::without_interrupts(|| {
         let mut handlers = IRQ_HANDLERS.lock();
@@ -188,6 +193,8 @@ pub fn set_irq_handler(irq: u8, handler: fn()) {
     });
 }
 
+
+/// Disable The Given IRQ
 pub fn set_irq_mask(irq: u8) {
     let mut port: Port<u8> = Port::new(if irq < 8 { PIC1 } else { PIC2 });
     unsafe {
@@ -196,6 +203,7 @@ pub fn set_irq_mask(irq: u8) {
     }
 }
 
+/// Enable The Given IRQ
 pub fn clear_irq_mask(irq: u8) {
     let mut port: Port<u8> = Port::new(if irq < 8 { PIC1 } else { PIC2 });
     unsafe {
@@ -207,6 +215,7 @@ pub fn clear_irq_mask(irq: u8) {
 
 #[repr(align(8), C)]
 #[derive(Debug, Clone, Default)]
+/// Store CPU Registers in the SYS-V ABI Calling Convention
 pub struct Registers {
     r15: usize,
     r14: usize,
@@ -229,6 +238,7 @@ pub struct Registers {
 macro_rules! wrap {
     ($fn: ident => $w:ident) => {
         #[naked]
+        #[allow(missing_docs)]
         pub unsafe extern "sysv64" fn $w() {
             asm!(
                 "push rbp",
@@ -288,3 +298,4 @@ extern "sysv64" fn syscall_handler(_stack_frame: &mut InterruptStackFrame, regs:
 
     send_eoi(15);
 }
+

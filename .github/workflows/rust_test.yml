@@ -1,0 +1,27 @@
+name: Test
+
+on:
+  push:
+    branches: [ trunk ]
+  pull_request:
+    branches: [ production, trunk ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install
+      run: |
+        cargo install bootimage
+        rustup component add llvm-tools-preview
+        rustup component add rust-src
+        sudo apt-get update
+        sudo apt install qemu-system
+        make clean
+    - name: Test
+      run: make test
