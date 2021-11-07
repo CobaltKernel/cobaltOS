@@ -10,7 +10,7 @@ use core::{convert::TryInto};
 use bootloader::{BootInfo, bootinfo::MemoryMap};
 
 use linked_list_allocator::LockedHeap;
-use x86_64::{PhysAddr, VirtAddr, structures::paging::{FrameAllocator, Mapper, OffsetPageTable, Page, PageTable, PageTableFlags, PhysFrame, Size4KiB, Translate, page::PageRangeInclusive}};
+use x86_64::{PhysAddr, VirtAddr, structures::paging::{FrameAllocator, Mapper, OffsetPageTable, Page, PageTableFlags, PhysFrame, Translate}};
 
 use crate::println;
 
@@ -119,7 +119,7 @@ fn map_page(page: Page, flags: PageTableFlags) {
 } 
 
 pub unsafe fn grow_heap(amount: usize) {
-    let mut allocator = &mut *ALLOCATOR.lock();
+    let allocator = &mut *ALLOCATOR.lock();
     let new_end = allocator.top() + amount;
     let new_end = VirtAddr::new(new_end as u64);
     let end = allocator.top();

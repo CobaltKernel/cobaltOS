@@ -2,7 +2,6 @@ use alloc::string::String;
 use alloc::borrow::ToOwned;
 use core::mem::size_of;
 use alloc::vec::Vec;
-use alloc::vec;
 
 #[repr(C)]
 #[derive(Debug, Clone)]
@@ -96,7 +95,7 @@ impl Metadata {
         
         let size: String = String::from_utf8(size).expect("Failed To Parse Size");
 
-        let mut meta = Self {
+        let meta = Self {
             addr,
             file_name: name,
             chksum: String::new(),

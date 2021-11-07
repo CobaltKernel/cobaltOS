@@ -1,6 +1,6 @@
 use alloc::vec::Vec;
 
-use crate::{arch::i386::syscalls::syscall3, syscall};
+use crate::{arch::i386::syscalls::syscall3};
 
 pub fn main(args: &Vec<&str>) -> usize {
     let n: usize = usize::from_str_radix(args.iter().nth(1).unwrap_or(&""), 16).unwrap_or(0);

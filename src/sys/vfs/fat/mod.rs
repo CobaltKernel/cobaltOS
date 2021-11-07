@@ -3,9 +3,9 @@ use block_device::BlockDevice;
 use fat32::volume::Volume;
 use alloc::vec;
 
-use crate::{println, serial, serial_println, sys::{ata, storage::fs::device}};
+use crate::{println, serial_println, sys::{ata}};
 
-pub fn read_file(path: &str) -> Result<(), &str> {
+pub fn read_file(_path: &str) -> Result<(), &str> {
     let disk = Disk(0,1);
     println!("Reading Volume From Disk {:?}...", disk);
     let volume = Volume::new(disk);
@@ -14,7 +14,7 @@ pub fn read_file(path: &str) -> Result<(), &str> {
     root.create_file("Yeet.txt").expect("Yeet");
 
     let mut file = root.open_file("Yeet.txt").expect("Error Opening File");
-    file.write("Hello World".as_bytes(), fat32::file::WriteType::OverWritten);
+    file.write("Hello World".as_bytes(), fat32::file::WriteType::OverWritten).expect("");
 
     Ok(())
 }
@@ -39,7 +39,6 @@ impl BlockDevice for Disk {
         }
 
         for i in 0..buf.len() {
-            let block = i * 512;
             blocks[i / 512][i % 512] = buf[i];
         }
 
@@ -50,12 +49,10 @@ impl BlockDevice for Disk {
         let mut blocks: Vec<[u8; 512]> = vec![[0; 512]; number_of_blocks];
 
         for i in 0..buf.len() {
-            let block = i * 512;
             blocks[i / 512][i % 512] = buf[i];
         }
 
         for addr in address..address + number_of_blocks {
-            let index = addr - address;
             ata::write(self.0, self.1, addr as u32, &blocks[addr]);
         }
 

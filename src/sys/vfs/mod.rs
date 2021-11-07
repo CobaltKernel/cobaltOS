@@ -3,13 +3,10 @@ pub mod filesystem;
 
 pub mod fat;
 
-use crate::{println, sys::ustar::*};
+use crate::{sys::ustar::*};
 use metadata::*;
-use lazy_static::lazy_static;
-use spin::Mutex;
 use alloc::boxed::Box;
 use alloc::vec::Vec;
-use x86_64::instructions::interrupts::without_interrupts;
 use crate::sys::storage::fs::{device, dev_handle::BlockDeviceIO};
 
 
@@ -23,7 +20,7 @@ pub fn list(buf: &mut Vec<Metadata>) {
     fs.metadata_slice(buf);
 }
 
-pub fn read(meta: &Metadata, buf: &mut Vec<u8>) {
+pub fn read(_: &Metadata, _: &mut Vec<u8>) {
 
 }
 

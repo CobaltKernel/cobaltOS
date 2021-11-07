@@ -39,7 +39,7 @@ lazy_static! {
 }
 
 pub fn mount_device(handle: DeviceHandle) {
-    let mut handle = handle;
+    let handle = handle;
     debug!("Mounted Handle With Size Of {} Blocks", handle.sector_count());
     assert!(handle.sector_count() <= DISK_SIZE as u32);
     *HANDLE.lock() = Some(handle);

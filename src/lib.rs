@@ -17,7 +17,7 @@
 
 extern crate alloc;
 use alloc::string::String;
-use iced_x86::{DecoderOptions, Instruction, NasmFormatter};
+use iced_x86::{DecoderOptions, Instruction};
 use x86_64::VirtAddr;
 
 pub mod serial;
@@ -66,9 +66,6 @@ pub fn test_panic_handler(info: &PanicInfo) -> ! {
 #[cfg(test)]
 #[no_mangle]
 pub extern "C" fn _start(boot_info: &'static bootloader::BootInfo) -> ! {
-    use core::mem;
-
-    use bootloader::BootInfo;
 
     use crate::{arch::i386::cmos, sys::{clock, net, pci, timer}};
 
@@ -145,13 +142,10 @@ pub fn dump_instructions(ptr: VirtAddr, len: usize) {
 
     let mut decoder = iced_x86::Decoder::new(64, bin, DecoderOptions::NONE);
     decoder.set_ip(ptr.as_u64());
-    let mut formatter = NasmFormatter::new();
 
-    //formatter.options_mut().set_binary_prefix("0b");
+    let _output = String::new();
 
-    let mut output = String::new();
-
-    let mut instruction = Instruction::default();
+    let instruction = Instruction::default();
 
     for ins in decoder.iter() {
         print!("{:016X}", ins.ip());

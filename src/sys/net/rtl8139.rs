@@ -354,7 +354,7 @@ impl phy::TxToken for TxToken {
 }
 
 impl phy::RxToken for RxToken {
-    fn consume<R, F>(mut self, timestamp: smoltcp::time::Instant, f: F) -> smoltcp::Result<R>
+    fn consume<R, F>(mut self, _: smoltcp::time::Instant, f: F) -> smoltcp::Result<R>
         where F: FnOnce(&mut [u8]) -> smoltcp::Result<R> {
             debug!("[{ }] Revcuieb", timestamp);
             f(&mut self.buffer)

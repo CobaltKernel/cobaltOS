@@ -4,7 +4,6 @@ use core::sync::atomic::Ordering;
 use crate::arch::i386::interrupts::gdt::GDT;
 use crate::sys;
 use alloc::vec;
-use array_macro::array;
 use object::Object;
 use object::ObjectSegment;
 use x86_64::structures::paging::FrameAllocator;
@@ -36,13 +35,18 @@ impl<'a> Process<'a> {
         }
     }
 
+    pub fn pid(&self) -> u16 {
+        self.process_id
+    }
+
     fn get_handle(&self, handle: u16) -> Option<&DeviceHandle> {
         self.device_handles[handle as usize]
     }
 
-    pub fn open_handle(&mut self, dev: DeviceHandle) -> Option<u16> {
+    pub fn open_handle(&mut self, dev: &'a DeviceHandle) -> Option<u16> {
         for idx in 0..MAX_DEVICE_HANDLES {
             if self.device_handles[idx].is_none() {
+                self.device_handles[idx] = Some(&dev);
                 return Some(idx as u16);
             };
         }
@@ -58,7 +62,7 @@ impl<'a> Process<'a> {
             if let Some(disk) = dev.as_ata_dev() {
                 let len = buffer.len() / 512;
                 
-                let mut temp = vec![0; len];
+                let mut _temp = vec![0; len];
                 disk.read(block, buffer);
                 return buffer.len();
             };

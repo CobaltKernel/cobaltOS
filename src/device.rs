@@ -3,9 +3,7 @@
 //! - Character Devices - 'dev/null' ([NullDevice]), 'dev/tty' | 'dev/comm' ([SerialPort])
 
 use alloc::vec::Vec;
-use spin::MutexGuard;
 use uart_16550::SerialPort;
-use crate::serial::SERIAL1;
 
 use crate::KResult;
 

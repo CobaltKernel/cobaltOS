@@ -9,7 +9,6 @@ use alloc::boxed::Box;
 
 use core::{fmt::Debug, ops::{Index, IndexMut}};
 
-use crate::{println, serial_println};
 
 pub struct TarFileSystem<E> {
     disk: Box<dyn BlockDevice<Error = E>>,
@@ -93,7 +92,8 @@ impl<E: Debug> TarFileSystem<E> {
 
     pub fn delete_file(&self, path: &str) -> bool {
         if let Some(file) = self.find(path) {
-            self.disk.write(&[0; 512], file.addr() as usize, file.block_length());
+            self.disk.write(&[0; 512], file.addr() as usize, file.block_length())
+            .expect("Failed To delete File");
             true
         } else {
             false
@@ -128,7 +128,8 @@ impl<E: Debug> TarFileSystem<E> {
             buffer[i] = meta.file_name().as_bytes()[i];
         }
 
-        self.disk.write(&buffer, meta.addr() as usize, 1);
+        self.disk.write(&buffer, meta.addr() as usize, 1)
+        .expect("Failed To Write Metadata");
     }
 }
 
@@ -149,7 +150,7 @@ impl BlockDevice for RamDisk {
         }
     }
 
-    fn write(&self, buf: &[u8], address: usize, number_of_blocks: usize) -> Result<(), Self::Error> {
+    fn write(&self, _: &[u8], _: usize, _: usize) -> Result<(), Self::Error> {
         todo!()
     }
 }

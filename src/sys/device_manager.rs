@@ -29,8 +29,6 @@ impl Device {
 ///     PCI/REALTEK/RTL8139
 pub fn get_device(path: &str) -> Option<Device> {
 
-    path.replace(":", "/");
-
     let sections: Vec<&str> = path.split("/").collect();
     match sections[0] {
         "PCI" => build_pci(&sections),
