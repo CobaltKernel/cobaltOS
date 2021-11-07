@@ -5,9 +5,10 @@
 use alloc::vec::Vec;
 use uart_16550::SerialPort;
 
-use crate::KResult;
+use crate::{KResult, sys::ata};
 
 pub struct Device;
+pub struct Disk(u8, u8);
 
 pub enum DeviceHandle {
     Serial(SerialPort),
@@ -169,7 +170,7 @@ pub trait BlockDevice {
     }
 
     fn block_count(&self) -> Option<usize>;
-    fn block_size(&self) -> Option<usize>;
+    fn block_size(&self) -> Option<usize> {Some(512)}
 }
 
 
@@ -244,6 +245,22 @@ impl BlockDevice for NullDevice {
 
     fn block_size(&self) -> Option<usize> {
         Some(512)
+    }
+}
+
+impl BlockDevice for Disk {
+    fn read(&self, addr: usize,buf: &mut [u8]) -> KResult<()> {
+        ata::read(self.0, self.1, addr as u32, buf);
+        Ok(())
+    }
+
+    fn write(&mut self, addr: usize, buf: &[u8]) -> KResult<()> {
+        ata::write(self.0, self.1, addr as u32, buf);
+        Ok(())
+    }
+
+    fn block_count(&self) -> Option<usize> {
+        Some(ata::sector_count(self.0, self.1) as usize)
     }
 }
 
