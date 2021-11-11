@@ -8,7 +8,7 @@
 - BIOS Booting
 
 
-# Features
+## Features
 
 - [x] PCI Devices
 - [x] Linked List Memory Allocator 
@@ -29,3 +29,36 @@
 - [ ] Bare Bones Shell
 - [ ] LibC Implementation
 - [ ] Defined ABI
+
+
+## Build Guide
+
+### Ubuntu (Recommended)
+
+1. Install Rust
+```bash
+apt-get install build-essential
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+2. Clone The Repo
+```bash
+git clone https://github.com/CobaltKernel/cobaltOS.git
+```
+
+3. Install prerequirements
+```bash
+cargo install bootimage
+cargo install cargo-release
+rustup component add rust-src
+rustup component add llvm-tools-preview
+```
+
+- Build
+```bash
+make build
+```
+
+- Run
+```bash
+make run
+```
