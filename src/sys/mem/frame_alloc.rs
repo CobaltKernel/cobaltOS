@@ -1,5 +1,5 @@
 use bootloader::bootinfo::{MemoryMap, MemoryRegionType};
-use x86_64::{PhysAddr, structures::paging::{FrameAllocator, Page, PhysFrame, Size4KiB}};
+use x86_64::{PhysAddr, structures::paging::{FrameAllocator, PhysFrame, Size4KiB}};
 use lazy_static::lazy_static;
 use spin::Mutex;
 

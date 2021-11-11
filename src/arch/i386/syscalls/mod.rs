@@ -1,6 +1,5 @@
-use core::ops::RangeInclusive;
-
-use crate::{print, serial_print};
+//use core::ops::RangeInclusive;
+use crate::{print};
 
 use self::calls::{PRINT_BYTE, PRINT_STR, SLEEP};
 
@@ -84,19 +83,5 @@ pub fn dispatch(n: usize, arg1: usize, arg2: usize, _arg3: usize) -> usize {
 
 #[test_case]
 pub fn test_syscalls() {
-    const PAUSE_TIME: usize = 500;
-    const ALLOWED_DEVIATION: usize = (PAUSE_TIME as f32 * 0.01) as usize;
-
-    const ALLOWED_RANGE: RangeInclusive<usize> = PAUSE_TIME..=(PAUSE_TIME + ALLOWED_DEVIATION);
-    unsafe {
-        for _ in 0..10 {
-            let time = crate::sys::timer::uptime_millis();
-            syscall!(SLEEP, PAUSE_TIME);
-            let elapsed = crate::sys::timer::uptime_millis() - time;
-            // Allow For A 100ms Deviation
-            assert!(ALLOWED_RANGE.contains(&(elapsed as usize)));
-
-            serial_print!("Deviation: {}ms", elapsed as usize - PAUSE_TIME);
-        }
-    }
+        crate::api::sleep(1000);
 }

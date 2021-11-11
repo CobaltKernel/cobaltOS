@@ -57,6 +57,7 @@ impl BlockDeviceIO for DeviceHandle {
 }
 
 #[derive(Debug,  Clone)]
+#[allow(dead_code)]
 pub struct MemDevice {disk: Vec<[u8; BLOCK_SIZE]>}
 #[derive(Debug, Copy, Clone)]
 pub struct AtaDevice {bus: u8, disk: u8}
@@ -147,7 +148,7 @@ impl BlockDevice for DeviceHandle {
         Ok(())
     }
 
-    fn write(&self, buffer: &[u8], addr: usize, block_count: usize) -> Result<(), Self::Error> {
+    fn write(&self, _: &[u8], _: usize, _: usize) -> Result<(), Self::Error> {
         todo!();
     }
 }

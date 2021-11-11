@@ -1,7 +1,7 @@
 [interface]
     name = "eth0"
     # (Required) The Device Name To Look For.
-    device = "PCI:RTL8139"
+    device = "PCI/REALTEK/RTL8139"
     # (Required) One Of "Ethernet", "Wireless", "Loopback", "Auto"
     dev_type = "Auto"
     # (Optional) The Network's Default Gateway, Ask DHCP Server If Not Present.
@@ -10,5 +10,5 @@
     dns_v4 = ["8.8.8.8", "8.8.4.4"]
     # (Optional) The IP Address To Use, Ask DHCP Server If Not Present.
     ipv4 = "10.0.2.3"
-    # (Optional) Whether Or Not This Interface Should Respond To Pings, Defaults To 'True'.
+    # (Optional) Whether Or Not This Interface Should Respond To Pings, Defaults To 'true'.
     pingable = true

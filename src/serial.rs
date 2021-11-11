@@ -1,7 +1,7 @@
 //! Handles Serial Communication Over A UART-16550 RS-232 COMM Port.
 
 use uart_16550::SerialPort;
-use spin::{Mutex, MutexGuard};
+use spin::{Mutex};
 use lazy_static::lazy_static;
 
 use crate::device::CharDevice;
@@ -52,23 +52,23 @@ impl CharDevice for SerialPort {
         Some(SERIAL1.lock().receive())
     }
 
-    fn read_u16(&self, addr: usize) ->  Option<u16> {
+    fn read_u16(&self, _: usize) ->  Option<u16> {
         unimplemented!();
     }
 
-    fn read_u32(&self, addr: usize) ->  Option<u32> {
+    fn read_u32(&self, _: usize) ->  Option<u32> {
         unimplemented!();
     }
 
-    fn read_u64(&self, addr: usize) ->  Option<u64> {
+    fn read_u64(&self, _: usize) ->  Option<u64> {
         unimplemented!();
     }
 
-    fn read_u128(&self, addr: usize) -> Option<u128> {
+    fn read_u128(&self, _: usize) -> Option<u128> {
         unimplemented!();
     }
 
-    fn write_u8  (&mut self, addr: usize, value: u8)   -> crate::KResult<()> {
+    fn write_u8  (&mut self, _: usize, value: u8)   -> crate::KResult<()> {
         SERIAL1.lock().send(value);
         Ok(())
     }

@@ -10,21 +10,11 @@
 #![feature(asm_sym)]
 #![feature(llvm_asm)]
 extern crate alloc;
-use alloc::string::String;
 use bootloader::{BootInfo, entry_point};
 use cobalt_os::*;
-use cobalt_os::arch::i386::syscalls::calls;
 use sys::*;
 use arch::i386;
-use i386::interrupts::*;
 use i386::cmos;
-use i386::syscalls;
-use storage::fs::{dev_handle::*};
-use device_manager::Device;
-use alloc::vec::Vec;
-
-use sys::ustar::TarFileSystem;
-use sys::vfs::fat::read_file;
 use x86_64::VirtAddr;
 use x86_64::structures::paging::PageTableFlags;
 entry_point!(kernel_main);
@@ -108,13 +98,3 @@ fn trivial_assertion() {
 
 
 
-
-pub unsafe fn userspace_prog_1() {
-    llvm_asm!("\
-        start:
-        mov rax, 0x0
-        mov rdi, 1000
-        int 0x80
-        jmp start
-    ":::: "volatile", "intel");
-}
