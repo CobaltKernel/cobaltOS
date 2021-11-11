@@ -17,7 +17,7 @@
 
 extern crate alloc;
 use alloc::string::String;
-use iced_x86::{DecoderOptions, Instruction};
+use iced_x86::{DecoderOptions, Instruction, NasmFormatter};
 use x86_64::VirtAddr;
 
 pub mod serial;
