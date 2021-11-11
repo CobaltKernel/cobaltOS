@@ -76,20 +76,7 @@ pub fn qemu_exit(error_code: QemuExitCode) -> ! {
 }
 
 
-#[macro_export]
-macro_rules! log {
-    ($($arg:tt)*) => ($crate::serial_print!("[LOG]: {}\n", format_args!($($arg)*)));
-}
 
-#[macro_export]
-macro_rules! warn {
-    ($($arg:tt)*) => ($crate::serial_print!("[WARN]: {}\n", format_args!($($arg)*)));
-}
-
-#[macro_export]
-macro_rules! err {
-    ($($arg:tt)*) => ($crate::serial_print!("[ERROR]: {}\n", format_args!($($arg)*)));
-}
 
 
 #[macro_export]

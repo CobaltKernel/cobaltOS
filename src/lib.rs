@@ -6,7 +6,7 @@
 #![feature(alloc_error_handler)]
 #![feature(const_btree_new)]
 #![feature(asm)]
-
+#![feature(asm_sym)]
 #![feature(naked_functions)]
 
 #![feature(custom_test_frameworks)]
@@ -18,7 +18,7 @@
 extern crate alloc;
 use alloc::string::String;
 use iced_x86::{DecoderOptions, Instruction, NasmFormatter};
-use x86_64::VirtAddr;
+use x86_64::{PhysAddr, VirtAddr};
 
 pub mod serial;
 pub mod interrupts;
@@ -154,16 +154,16 @@ pub fn dump_instructions(ptr: VirtAddr, len: usize) {
     let mut instruction = Instruction::default();
 
     for ins in decoder.iter() {
-        print!("{:016X}", ins.ip());
+        print!("{:016X} | ", ins.ip());
 
-        let start_index = (instruction.ip() - ptr.as_u64()) as usize;
-        let instr_bytes = &bin[start_index..start_index + instruction.len()];
+        let start_index = (ins.ip() - ptr.as_u64()) as usize;
+        let instr_bytes = &bin[start_index..start_index + ins.len()];
         for b in instr_bytes.iter() {
-            print!("{:02X}", b);
+            print!("{:02X} ", b);
         }
         if instr_bytes.len() < HEXBYTES_COLUMN_BYTE_LENGTH {
             for _ in 0..HEXBYTES_COLUMN_BYTE_LENGTH - instr_bytes.len() {
-                print!("  ");
+                print!("   ");
             }
         }
 
@@ -174,9 +174,63 @@ pub fn dump_instructions(ptr: VirtAddr, len: usize) {
 }
 
 
+pub fn dump_instructions_phys(ptr: *const u8, len: usize) {
+    let bin: &[u8] = unsafe { 
+        core::slice::from_raw_parts(ptr, len)
+    };
+
+    let mut decoder = iced_x86::Decoder::new(64, bin, DecoderOptions::NONE);
+    decoder.set_ip(ptr as u64);
+    let mut formatter = NasmFormatter::new();
+
+    //formatter.options_mut().set_binary_prefix("0b");
+
+    let mut output = String::new();
+
+    let mut instruction = Instruction::default();
+
+    for ins in decoder.iter() {
+        serial_print!("${:016X} | ", ins.ip());
+
+        let start_index = (ins.ip() - ptr as u64) as usize;
+        let instr_bytes = &bin[start_index..start_index + ins.len()];
+        for b in instr_bytes.iter() {
+            serial_print!("{:02X} ", b);
+        }
+        if instr_bytes.len() < HEXBYTES_COLUMN_BYTE_LENGTH {
+            for _ in 0..HEXBYTES_COLUMN_BYTE_LENGTH - instr_bytes.len() {
+                serial_print!("   ");
+            }
+        }
+
+        serial_println!("| {}", instruction);
+    }
 
 
+}
 
+
+#[macro_export]
+macro_rules! sprintk {
+    ($($args:tt)*) => {
+        $crate::serial::_print(format_args!($($args)*));
+    };
+}
+
+#[macro_export]
+macro_rules! vprintk {
+    ($($args:tt)*) => {
+        $crate::sys::vga::_print(format_args!($($args)*));
+    };
+}
+
+#[macro_export]
+macro_rules! printk {
+    ($($args:tt)*) => {
+        $crate::sys::vga::_print(format_args!($($args)*));
+        $crate::serial::_print(format_args!($($args)*));
+    };
+}
 
 
 pub type KResult<T> = core::result::Result<T, &'static str>;

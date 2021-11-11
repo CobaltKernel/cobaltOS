@@ -7,6 +7,7 @@
 #![feature(custom_test_frameworks)]
 #![test_runner(cobalt_os::test_runner)]
 #![reexport_test_harness_main = "test_main"]
+#![feature(asm_sym)]
 #![feature(llvm_asm)]
 extern crate alloc;
 use alloc::string::String;
@@ -31,15 +32,15 @@ entry_point!(kernel_main);
 pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
 
 	clear!();
-	print!("Initializing Interrupts...");
+	log!("Initializing Interrupts...");
 	interrupts::init();
-	println!("[OK]");
-	print!("Initializing Timer...");
+	printk!("[OK]\n");
+	log!("Initializing Timer...");
 	timer::init();
-	println!("[OK]");
-	print!("Enabling Interrupts...");
+	printk!("[OK]\n");
+	log!("Enabling Interrupts...");
 	interrupts::enable();
-	println!("[OK]");
+	printk!("[OK]\n");
 
 
 
@@ -90,7 +91,7 @@ pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
 	//print!("\r");	
 
 
-	
+	dump_instructions_phys(userspace_prog_1 as *const u8, 128);
 
 	sys::shell::start();
 
