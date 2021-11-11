@@ -81,7 +81,7 @@ pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
 	//print!("\r");	
 
 
-	dump_instructions_phys(userspace_prog_1 as *const u8, 128);
+	//dump_instructions_phys(userspace_prog_1 as *const u8, 128);
 
 	sys::shell::start();
 
