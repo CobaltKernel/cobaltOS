@@ -20,7 +20,7 @@
 - [ ] Text Editor
 - [ ] EXT2 Filesystem
 - [ ] FAT32 Filesystem
-- [x] USTAR Filesystem
+- [x] USTAR Filesystem (Read Only)
 - [ ] UEFI Booting
 - [x] BIOS Booting
 - [x] x86-64
