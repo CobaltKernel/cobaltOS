@@ -82,23 +82,23 @@ macro_rules! kmalloc {
 #[macro_export]
 macro_rules! log {
     ($($arg:tt)*) => (
-        $crate::serial_print!("\n\x1b[32m[LOG]:\x1b[0m {}", format_args!($($arg)*));
-        $crate::print!("\n[LOG]: {}", format_args!($($arg)*));
+        $crate::serial_print!("\x1b[32m[LOG]:\x1b[0m {}", format_args!($($arg)*));
+        $crate::print!("[LOG]: {}", format_args!($($arg)*));
     );
 }
 
 #[macro_export]
 macro_rules! warn {
     ($($arg:tt)*) => (
-        $crate::serial_print!("\n\x1b[33m[WARN]:\x1b[0m {}", format_args!($($arg)*));
-        $crate::print!("\n[WARN]: {}", format_args!($($arg)*));
+        $crate::serial_print!("\x1b[33m[WARN]:\x1b[0m {}", format_args!($($arg)*));
+        $crate::print!("[WARN]: {}", format_args!($($arg)*));
     );
 }
 
 #[macro_export]
 macro_rules! err {
     ($($arg:tt)*) => (
-        $crate::serial_print!("\n\x1b[31m[ERROR]:\x1b[0m {}", format_args!($($arg)*))
-        $crate::print!("\n[ERROR]: {}", format_args!($($arg)*));
+        $crate::serial_print!("\x1b[31m[ERROR]:\x1b[0m {}", format_args!($($arg)*))
+        $crate::print!("[ERROR]: {}", format_args!($($arg)*));
     );
 }

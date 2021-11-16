@@ -12,6 +12,7 @@
 extern crate alloc;
 use bootloader::{BootInfo, entry_point};
 use cobalt_os::*;
+use cobalt_os::sys::mem::HEAP_START;
 use sys::*;
 use arch::i386;
 use i386::cmos;
@@ -81,7 +82,7 @@ pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
 	//print!("\r");	
 
 
-	//dump_instructions_phys(userspace_prog_1 as *const u8, 128);
+	cobalt_os::dump_mem_phys(HEAP_START as *const u8, 256);
 
 	sys::shell::start();
 

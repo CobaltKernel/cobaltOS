@@ -1,6 +1,6 @@
 use spin::Mutex;
 use x86_64::instructions::{hlt, interrupts::{self, disable, enable_and_hlt, without_interrupts}};
-use crate::{log, printk};
+use crate::{log};
 
 use super::pit::set_freq;
 static TIMER: Mutex<u128> = Mutex::new(0);

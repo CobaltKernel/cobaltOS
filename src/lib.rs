@@ -175,13 +175,6 @@ pub fn dump_instructions_phys(ptr: *const u8, len: usize) {
 
     let mut decoder = iced_x86::Decoder::new(64, bin, DecoderOptions::NONE);
     decoder.set_ip(ptr as u64);
-    let mut formatter = NasmFormatter::new();
-
-    //formatter.options_mut().set_binary_prefix("0b");
-
-    let mut output = String::new();
-
-    let mut instruction = Instruction::default();
 
     for ins in decoder.iter() {
         serial_print!("${:016X} | ", ins.ip());
@@ -197,10 +190,26 @@ pub fn dump_instructions_phys(ptr: *const u8, len: usize) {
             }
         }
 
-        serial_println!("| {}", instruction);
+        serial_println!("| {}", ins);
     }
 
+    
+    
+    
 
+
+}
+
+pub fn dump_mem_phys(ptr: *const u8, len: usize) {
+
+    for row in (0..len).step_by(16) {
+        serial_print!("${:016X}: ", row + ptr as usize);
+        for col in 0..16 {
+            let ptr_offset = (row + col + ptr as usize) as *const u8;
+            serial_print!("{:02X}, ", unsafe {*(ptr_offset)});
+        }
+        serial_println!();
+    }
 }
 
 

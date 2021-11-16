@@ -20,6 +20,6 @@ pub fn set_freq(hz: f64) {
 		data_port.write((divisor >> 8) as u8);
 	}
 
-	log!("Set PIT Freq to {} (reload: {}, {} Hz)", hz, divisor, actual);
+	//log!("Set PIT Freq to {} (reload: {}, {} Hz)", hz, divisor, actual);
 	});
 }

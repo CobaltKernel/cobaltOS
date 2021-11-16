@@ -28,7 +28,7 @@ fn mount_ramdisk(_args: &Vec<&str>) {
 
 fn mount_ata(args: &Vec<&str>) {
     mount_device(DeviceHandle::AtaBlockDevice(AtaDevice::new(args[3].parse().unwrap(),args[4].parse().unwrap())));
-    log!("Mounted ATA {}:{}", args[3], args[4]);
+    //log!("Mounted ATA {}:{}", args[3], args[4]);
 }
 
 fn visualize(args: &Vec<&str>) {
